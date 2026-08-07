@@ -1,0 +1,60 @@
+{
+  "version": "v2",
+  "created_at": "2026-08-06T11:41:00Z",
+  "metrics": {
+    "r2": 0.9559,
+    "mape": 8.65,
+    "mdape": 5.94,
+    "mae": 67249
+  },
+  "segments": {
+    "low_end": { "mae": 46998, "mape": 12.45 },
+    "mid_range": { "mae": 58526, "mape": 7.59 },
+    "high_end": { "mae": 99435, "mape": 6.18 }
+  },
+  "hyperparameters": {
+    "n_estimators": 900,
+    "max_depth": 12,
+    "learning_rate": 0.020123397015234162,
+    "subsample": 0.8022076349552312,
+    "colsample_bytree": 0.6915892779861231,
+    "min_child_weight": 7,
+    "reg_alpha": 1.074336170996732e-08,
+    "reg_lambda": 1.5114457473168448e-06
+  },
+  "features": {
+    "high_cardinality_cats": [
+      "Marka",
+      "Seri",
+      "Model",
+      "Kasa_Tipi"
+    ],
+    "low_cardinality_cats": [
+      "Vites_Tipi",
+      "Yakit_Tipi",
+      "Cekis",
+      "Renk",
+      "Kimden",
+      "Garanti_Durumu",
+      "Silindir_Sayisi",
+      "Koltuk_Sayisi",
+      "Boya_Durumu"
+    ],
+    "numerical": [
+      "Arac_Yasi",
+      "Kilometre",
+      "Yillik_Ortalama_KM",
+      "Motor_Hacmi_cc",
+      "Motor_Gucu_hp",
+      "Tramer_TL",
+      "Has_Boya",
+      "Has_Degisen",
+      "Has_Tramer"
+    ]
+  },
+  "encoders": {
+    "target_encoder": "category_encoders.TargetEncoder",
+    "ordinal_encoder": "sklearn.preprocessing.OrdinalEncoder",
+    "imputer": "sklearn.impute.SimpleImputer"
+  }
+}

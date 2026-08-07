@@ -1,0 +1,65 @@
+# Environment variables
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+.venv
+venv/
+ENV/
+
+# Data and Models
+postgres_data/
+*.csv
+*.json
+*.pkl
+!models/v2/*.json
+
+# Node/Next.js
+node_modules/
+.next/
+out/
+build/
+.npm/
+
+# OS/IDE
+.DS_Store
+.vscode/
+.idea/
+brain/
+*.log
+
+# Large Datasets
+araba_verileri.jsonl
+dev_veriseti.jsonl
+scraped_links.txt
+
+# Backup frontend
+frontend_flutter/
