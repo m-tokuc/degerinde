@@ -11,6 +11,11 @@ services:
       POSTGRES_DB: postgres
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -19,12 +24,12 @@ services:
     container_name: car_price_api
     restart: always
     environment:
-      # Inject the DB URL pointing to the 'db' service instead of localhost
       DB_URL: postgresql+psycopg2://postgres:sifre123@db:5432/postgres
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   frontend:
     build: ./frontend
