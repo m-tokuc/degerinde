@@ -700,14 +700,32 @@ def backfill_from_legacy_araclar(
 
 
 def load_clean_dataframe(engine: Optional[Engine] = None) -> pd.DataFrame:
-    """Load araclar_clean; if empty, backfill from legacy then reload."""
+    """Load araclar_clean; if empty, import from local jsonl or backfill from legacy then reload."""
     eng = ensure_clean_table(engine)
     with eng.connect() as conn:
         n = conn.execute(text("SELECT COUNT(*) FROM araclar_clean")).scalar() or 0
     if n == 0:
-        print("araclar_clean boş — legacy araclar'dan backfill...")
-        stats = backfill_from_legacy_araclar(eng)
-        print(f"  backfill: {stats}")
+        if os.path.exists("araba_verileri.jsonl"):
+            print("araclar_clean boş — araba_verileri.jsonl'den import ediliyor...")
+            try:
+                stats = import_jsonl("araba_verileri.jsonl", engine=eng)
+                print(f"  JSONL import: {stats}")
+            except Exception as e:
+                print(f"⚠️ JSONL import hatası (araba_verileri.jsonl): {e}")
+        elif os.path.exists("dev_veriseti.jsonl"):
+            print("araclar_clean boş — dev_veriseti.jsonl'den import ediliyor...")
+            try:
+                stats = import_jsonl("dev_veriseti.jsonl", engine=eng)
+                print(f"  JSONL import: {stats}")
+            except Exception as e:
+                print(f"⚠️ JSONL import hatası (dev_veriseti.jsonl): {e}")
+        else:
+            print("araclar_clean boş — legacy araclar'dan backfill...")
+            try:
+                stats = backfill_from_legacy_araclar(eng)
+                print(f"  backfill: {stats}")
+            except Exception as e:
+                print(f"⚠️ Legacy backfill hatası (muhtemelen 'araclar' tablosu yok): {e}")
     return pd.read_sql("SELECT * FROM araclar_clean", eng)
 
 
