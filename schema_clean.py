@@ -705,7 +705,14 @@ def load_clean_dataframe(engine: Optional[Engine] = None) -> pd.DataFrame:
     with eng.connect() as conn:
         n = conn.execute(text("SELECT COUNT(*) FROM araclar_clean")).scalar() or 0
     if n == 0:
-        if os.path.exists("araba_verileri.jsonl"):
+        if os.path.exists("seed_data.jsonl"):
+            print("araclar_clean boş — seed_data.jsonl'den import ediliyor...")
+            try:
+                stats = import_jsonl("seed_data.jsonl", engine=eng)
+                print(f"  JSONL import: {stats}")
+            except Exception as e:
+                print(f"⚠️ JSONL import hatası (seed_data.jsonl): {e}")
+        elif os.path.exists("araba_verileri.jsonl"):
             print("araclar_clean boş — araba_verileri.jsonl'den import ediliyor...")
             try:
                 stats = import_jsonl("araba_verileri.jsonl", engine=eng)

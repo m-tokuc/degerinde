@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 
-const API_BASE_URL = "http://129.159.199.31:8000";
+const API_BASE_URL = "";
 
 export default function Home() {
   const [formData, setFormData] = useState({
