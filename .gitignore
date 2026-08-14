@@ -42,6 +42,7 @@ postgres_data/
 *.pkl
 !models/v2/*.json
 !models/v2/model.pkl
+!car_price_model.pkl
 
 # Node/Next.js
 node_modules/
