@@ -41,6 +41,7 @@ postgres_data/
 *.json
 *.pkl
 !models/v2/*.json
+!models/v2/model.pkl
 
 # Node/Next.js
 node_modules/

@@ -38,7 +38,7 @@ export default function Home() {
     setResult(null);
 
     try {
-      const res = await fetch("http://localhost:8000/api/v2/predict_v2", {
+      const res = await fetch("/api/v2/predict_v2", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
