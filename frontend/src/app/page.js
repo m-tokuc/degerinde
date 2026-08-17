@@ -53,6 +53,44 @@ export default function Home() {
       const data = await res.json();
       if (data.status === "success") {
         setOptions(data);
+        
+        // Auto-select fields that have exactly 1 option and clear invalid ones
+        setFormData(prev => {
+          const next = { ...prev };
+          let changed = false;
+          
+          const fieldMap = {
+            Marka: "Marka", Seri: "Seri", Model: "Model", Yil: "Yil",
+            Vites_Tipi: "Vites_Tipi", Yakit_Tipi: "Yakit_Tipi", Kasa_Tipi: "Kasa_Tipi",
+            Renk: "Renk", Cekis: "Cekis", Motor_Hacmi: "Motor_Hacmi_cc",
+            Motor_Gucu: "Motor_Gucu_hp", Garanti_Durumu: "Garanti_Durumu",
+            Silindir_Sayisi: "Silindir_Sayisi", Koltuk_Sayisi: "Koltuk_Sayisi", Kimden: "Kimden"
+          };
+          
+          Object.keys(fieldMap).forEach(optKey => {
+            const formKey = fieldMap[optKey];
+            const availableOptions = data[optKey] ? data[optKey].map(String) : [];
+            
+            // 1. If current value is not empty and not in the new options list, clear it
+            if (next[formKey] && next[formKey] !== "" && next[formKey] !== "Belirsiz" && next[formKey] !== "Belirtilmemiş") {
+              if (availableOptions.length > 0 && !availableOptions.includes(next[formKey].toString())) {
+                next[formKey] = ""; // Reset to empty/default
+                changed = true;
+              }
+            }
+            
+            // 2. Auto-select if exactly 1 option available
+            if (availableOptions.length === 1) {
+              const singleVal = availableOptions[0];
+              if (next[formKey] !== singleVal) {
+                next[formKey] = singleVal;
+                changed = true;
+              }
+            }
+          });
+          
+          return changed ? next : prev;
+        });
       }
     } catch (err) {
       console.error(err);
