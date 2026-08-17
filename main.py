@@ -547,6 +547,18 @@ def predict_price(
                         price = isotonic[i] + t * (isotonic[i + 1] - isotonic[i])
                     break
         price = max(0.0, float(price))
+        
+        # --- HARD SANITY CHECKS (Safety Guardrails) ---
+        # 1. Floor limit: Even a 30-year-old high-km car has a scrap/parts value.
+        MIN_PRICE_FLOOR = 150000.0
+        if price < MIN_PRICE_FLOOR:
+            price = MIN_PRICE_FLOOR
+            
+        # 2. Cap limit: Prevent absurdly high predictions
+        MAX_PRICE_CAP = 50000000.0
+        if price > MAX_PRICE_CAP:
+            price = MAX_PRICE_CAP
+        # ----------------------------------------------
 
         mae = MODEL_MAE or 0.0
         # Confidence Interval (+/- 4% to simulate market flexibility)

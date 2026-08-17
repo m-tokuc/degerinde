@@ -199,10 +199,12 @@ export default function Home() {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <svg className="w-8 h-8 text-blue-600" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect width="100" height="100" rx="20" fill="currentColor"/>
-              <path d="M30 50 L45 65 L70 35" stroke="white" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M25 75 L75 75" stroke="white" strokeWidth="6" strokeLinecap="round" strokeOpacity="0.5"/>
+            <svg className="w-10 h-10 text-blue-600" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M15 70 L30 70 L40 45 L70 45 L80 70 L95 70" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
+              <circle cx="30" cy="70" r="7" fill="white" stroke="currentColor" strokeWidth="5"/>
+              <circle cx="80" cy="70" r="7" fill="white" stroke="currentColor" strokeWidth="5"/>
+              <path d="M25 40 L45 20 L60 30 L85 10" stroke="#0ea5e9" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M70 10 L85 10 L85 25" stroke="#0ea5e9" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             <span className="text-2xl tracking-tight">
               <span className="font-extrabold text-blue-700">Değer</span><span className="font-medium text-slate-500">inde.</span>
@@ -405,10 +407,22 @@ export default function Home() {
 
           {loadingPredict && (
             <div className="h-full min-h-[500px] flex flex-col items-center justify-center border-2 border-slate-100 rounded-3xl p-6 md:p-10 text-center bg-white shadow-xl shadow-slate-200/50">
-              <div className="relative">
-                <svg className="animate-spin h-14 w-14 text-blue-600 mb-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                <div className="absolute inset-0 flex items-center justify-center pb-6">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-ping"></div>
+              <div className="relative w-40 h-20 mb-8 mx-auto flex items-center justify-center overflow-hidden">
+                <style>{`
+                  @keyframes laser-sweep {
+                    0% { left: 10%; opacity: 0; }
+                    10% { opacity: 1; }
+                    90% { opacity: 1; }
+                    100% { left: 90%; opacity: 0; }
+                  }
+                `}</style>
+                <svg className="w-full h-full text-slate-200" viewBox="0 0 100 50" fill="none">
+                  <path d="M10 35 L20 35 L30 15 L70 15 L80 35 L90 35" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="25" cy="35" r="6" stroke="currentColor" strokeWidth="3"/>
+                  <circle cx="75" cy="35" r="6" stroke="currentColor" strokeWidth="3"/>
+                </svg>
+                <div className="absolute top-2 bottom-2 w-1.5 bg-blue-500 rounded-full shadow-[0_0_15px_5px_rgba(59,130,246,0.8)]"
+                     style={{ animation: 'laser-sweep 1.5s ease-in-out infinite alternate' }}>
                 </div>
               </div>
               <h3 className="text-xl md:text-2xl font-bold text-slate-800 mb-2 transition-all duration-300">
@@ -511,8 +525,20 @@ export default function Home() {
 
           {!loadingPredict && !result && !error && (
             <div className="h-full min-h-[500px] flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-200 rounded-3xl p-10 text-center bg-white/50">
-              <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-5">
-                <svg className="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path></svg>
+              <div className="w-32 h-32 mb-6 flex items-center justify-center opacity-25 text-slate-600">
+                <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="3">
+                  <path d="M20 70 A 40 40 0 1 1 80 70" strokeLinecap="round"/>
+                  <path d="M30 60 L35 55 M50 40 L50 48 M70 60 L65 55" strokeLinecap="round"/>
+                  <path d="M50 70 L75 55" stroke="currentColor" strokeWidth="5" strokeLinecap="round"/>
+                  <circle cx="50" cy="70" r="6" fill="currentColor"/>
+                  <circle cx="20" cy="70" r="3" fill="currentColor"/>
+                  <circle cx="80" cy="70" r="3" fill="currentColor"/>
+                  <circle cx="50" cy="30" r="4" fill="currentColor"/>
+                  <path d="M50 30 L50 15 M50 30 L30 20 M50 30 L70 20" strokeWidth="2" strokeDasharray="4 4" />
+                  <circle cx="50" cy="15" r="2" fill="currentColor"/>
+                  <circle cx="30" cy="20" r="2" fill="currentColor"/>
+                  <circle cx="70" cy="20" r="2" fill="currentColor"/>
+                </svg>
               </div>
               <h3 className="text-xl font-bold text-slate-700 mb-3">Değerleme Sonucu</h3>
               <p className="text-sm text-slate-500 max-w-sm mx-auto leading-relaxed">
