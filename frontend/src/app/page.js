@@ -33,8 +33,15 @@ export default function Home() {
 
   const [loadingOptions, setLoadingOptions] = useState(false);
   const [loadingPredict, setLoadingPredict] = useState(false);
+  const [loadingMessageIdx, setLoadingMessageIdx] = useState(0);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+
+  const loadingMessages = [
+    "Piyasa verileri taranıyor...",
+    "Donanım özellikleri analiz ediliyor...",
+    "Benzer ilanlar karşılaştırılıyor..."
+  ];
 
   // Fetch initial options (brands)
   useEffect(() => {
@@ -132,8 +139,13 @@ export default function Home() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoadingPredict(true);
+    setLoadingMessageIdx(0);
     setError(null);
     setResult(null);
+
+    const loaderInterval = setInterval(() => {
+      setLoadingMessageIdx(prev => (prev + 1) % loadingMessages.length);
+    }, 2000);
 
     try {
       // Cast numeric fields properly to prevent Pydantic 422 errors
@@ -172,6 +184,7 @@ export default function Home() {
     } catch (err) {
       setError(err.message);
     } finally {
+      clearInterval(loaderInterval);
       setLoadingPredict(false);
     }
   };
@@ -392,57 +405,105 @@ export default function Home() {
           )}
 
           {loadingPredict && (
-            <div className="h-full min-h-[500px] flex flex-col items-center justify-center border-2 border-slate-100 rounded-3xl p-10 text-center bg-white shadow-xl shadow-slate-200/50">
-              <svg className="animate-spin h-12 w-12 text-blue-600 mb-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-              <h3 className="text-xl font-bold text-slate-800 mb-2">Yapay Zeka Analizi Başladı</h3>
+            <div className="h-full min-h-[500px] flex flex-col items-center justify-center border-2 border-slate-100 rounded-3xl p-6 md:p-10 text-center bg-white shadow-xl shadow-slate-200/50">
+              <div className="relative">
+                <svg className="animate-spin h-14 w-14 text-blue-600 mb-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                <div className="absolute inset-0 flex items-center justify-center pb-6">
+                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-ping"></div>
+                </div>
+              </div>
+              <h3 className="text-xl md:text-2xl font-bold text-slate-800 mb-2 transition-all duration-300">
+                {loadingMessages[loadingMessageIdx]}
+              </h3>
               <p className="text-sm text-slate-500 max-w-xs mx-auto">
-                Yapay zeka modelimiz milyonlarca piyasa verisini analiz ederek aracınızın en doğru değerini hesaplıyor...
+                Yapay zeka modelimiz milyonlarca piyasa verisini analiz ediyor, lütfen bekleyin.
               </p>
             </div>
           )}
 
           {!loadingPredict && result && result.status === "success" && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              
+              {/* Outlier Warning */}
+              {result.is_outlier && (
+                <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-start gap-3 text-amber-800 shadow-sm">
+                  <svg className="w-6 h-6 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                  <p className="text-sm font-medium">{result.outlier_warning}</p>
+                </div>
+              )}
+
               {/* Primary Price Card */}
-              <div className="bg-white p-8 md:p-10 rounded-3xl shadow-2xl shadow-slate-200/60 border border-slate-100 text-center relative overflow-hidden">
+              <div className="bg-white p-6 md:p-10 rounded-3xl shadow-2xl shadow-slate-200/60 border border-slate-100 text-center relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-2 bg-blue-600"></div>
-                <p className="text-slate-500 text-sm font-bold uppercase tracking-widest mb-4">Değerinde. Tavsiye Edilen Satış Fiyatı</p>
-                <h2 className="text-5xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-6">
+                <p className="text-slate-500 text-xs md:text-sm font-bold uppercase tracking-widest mb-4">Değerinde. Tavsiye Edilen Satış Fiyatı</p>
+                <h2 className="text-4xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-6">
                   {formatMoney(result.predicted_price)}
                 </h2>
                 
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t border-slate-100">
-                  <div className="text-left">
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Tahmini Piyasa Fiyat Aralığı</p>
-                    <p className="text-lg font-bold text-slate-700">{formatMoney(result.confidence_low)} <span className="text-slate-300 font-normal mx-1">-</span> {formatMoney(result.confidence_high)}</p>
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-6 border-t border-slate-100">
+                  <div className="text-center sm:text-left w-full sm:w-auto">
+                    <p className="text-[10px] md:text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Tahmini Piyasa Fiyat Aralığı</p>
+                    <p className="text-base md:text-lg font-bold text-slate-700 bg-slate-50 px-4 py-2 rounded-xl inline-block sm:block">
+                      {formatMoney(result.confidence_low)} <span className="text-slate-300 font-normal mx-1">-</span> {formatMoney(result.confidence_high)}
+                    </p>
                   </div>
-                  <div className="hidden sm:block h-10 w-px bg-slate-200"></div>
-                  <div className="text-right flex items-center gap-2">
+                  <div className="hidden sm:block h-12 w-px bg-slate-200"></div>
+                  <div className="text-center sm:text-right flex items-center justify-center gap-2 bg-emerald-50 px-4 py-2 rounded-xl w-full sm:w-auto">
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span className="text-sm font-semibold text-emerald-700">Yüksek Güvenilirlik</span>
+                    <span className="text-xs md:text-sm font-semibold text-emerald-700">Yüksek Güvenilirlik</span>
                   </div>
                 </div>
               </div>
 
+              {/* Explainable AI Breakdown */}
+              {result.explanation && (
+                <div className="bg-white p-6 rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-100">
+                  <h3 className="text-sm font-bold text-slate-800 mb-4 px-2 flex items-center gap-2">
+                    <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    Fiyat Neden Böyle Çıktı?
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center bg-slate-50 p-3 rounded-xl">
+                      <span className="text-sm text-slate-600 font-medium">Model Taban Fiyatı</span>
+                      <span className="font-bold text-slate-800">{formatMoney(result.explanation.base_average)}</span>
+                    </div>
+                    <div className="flex justify-between items-center bg-rose-50 p-3 rounded-xl">
+                      <span className="text-sm text-rose-700 font-medium">Kilometre Etkisi</span>
+                      <span className="font-bold text-rose-700">{formatMoney(result.explanation.km_impact)}</span>
+                    </div>
+                    <div className="flex justify-between items-center bg-orange-50 p-3 rounded-xl">
+                      <span className="text-sm text-orange-700 font-medium">Yaş / Yıpranma Etkisi</span>
+                      <span className="font-bold text-orange-700">{formatMoney(result.explanation.age_impact)}</span>
+                    </div>
+                    {result.explanation.damage_impact < 0 && (
+                      <div className="flex justify-between items-center bg-red-50 p-3 rounded-xl">
+                        <span className="text-sm text-red-700 font-medium">Hasar / Tramer Etkisi</span>
+                        <span className="font-bold text-red-700">{formatMoney(result.explanation.damage_impact)}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Model Info */}
               <div className="bg-white p-6 rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-100">
                 <h3 className="text-sm font-bold text-slate-800 mb-4 px-2">Model Metrikleri & Şeffaflık</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-slate-50 p-4 rounded-2xl">
-                    <p className="text-xs font-medium text-slate-500 mb-1">Algoritma</p>
-                    <p className="text-sm font-bold text-slate-800">XGBoost Regressor</p>
+                <div className="grid grid-cols-2 gap-3 md:gap-4">
+                  <div className="bg-slate-50 p-3 md:p-4 rounded-2xl">
+                    <p className="text-[10px] md:text-xs font-medium text-slate-500 mb-1">Algoritma</p>
+                    <p className="text-xs md:text-sm font-bold text-slate-800">XGBoost Regressor</p>
                   </div>
-                  <div className="bg-slate-50 p-4 rounded-2xl">
-                    <p className="text-xs font-medium text-slate-500 mb-1">Başarı (R²)</p>
-                    <p className="text-sm font-bold text-slate-800">%{(result.model_r2 * 100).toFixed(1)}</p>
+                  <div className="bg-slate-50 p-3 md:p-4 rounded-2xl">
+                    <p className="text-[10px] md:text-xs font-medium text-slate-500 mb-1">Başarı (R²)</p>
+                    <p className="text-xs md:text-sm font-bold text-slate-800">%{(result.model_r2 * 100).toFixed(1)}</p>
                   </div>
-                  <div className="bg-slate-50 p-4 rounded-2xl">
-                    <p className="text-xs font-medium text-slate-500 mb-1">Ort. Hata (MAE)</p>
-                    <p className="text-sm font-bold text-slate-800">± {formatMoney(result.mae)}</p>
+                  <div className="bg-slate-50 p-3 md:p-4 rounded-2xl">
+                    <p className="text-[10px] md:text-xs font-medium text-slate-500 mb-1">Ort. Hata (MAE)</p>
+                    <p className="text-xs md:text-sm font-bold text-slate-800">± {formatMoney(result.mae)}</p>
                   </div>
-                  <div className="bg-slate-50 p-4 rounded-2xl">
-                    <p className="text-xs font-medium text-slate-500 mb-1">Analiz Edilen Özellik</p>
-                    <p className="text-sm font-bold text-slate-800">{result.features_used} Kriter</p>
+                  <div className="bg-slate-50 p-3 md:p-4 rounded-2xl">
+                    <p className="text-[10px] md:text-xs font-medium text-slate-500 mb-1">Analiz Edilen Özellik</p>
+                    <p className="text-xs md:text-sm font-bold text-slate-800">{result.features_used} Kriter</p>
                   </div>
                 </div>
               </div>

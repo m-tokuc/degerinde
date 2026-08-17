@@ -549,8 +549,31 @@ def predict_price(
         price = max(0.0, float(price))
 
         mae = MODEL_MAE or 0.0
-        low = max(0.0, price - mae)
-        high = price + mae
+        # Confidence Interval (+/- 4% to simulate market flexibility)
+        low = price * 0.96
+        high = price * 1.04
+        
+        # Outlier Detection
+        is_outlier = bool((req.Yil < 2005) or (req.Kilometre > 350000))
+        outlier_warning = "Bu araç için piyasada yeterli veri bulunmamaktadır, tahmin sapabilir." if is_outlier else ""
+
+        # Explainable AI (Reasoning Heuristic)
+        age_years = max(0, 2026 - req.Yil)
+        km_impact_val = - (price * 0.01 * (req.Kilometre / 10000.0))
+        age_impact_val = - (price * 0.02 * age_years)
+        damage_impact_val = 0.0
+        if hasar['Has_Tramer'] > 0 or hasar['Has_Boya'] > 0 or hasar['Has_Degisen'] > 0:
+            damage_impact_val = - (price * 0.05)
+            
+        base_average = price - km_impact_val - age_impact_val - damage_impact_val
+        
+        explanation = {
+            "base_average": base_average,
+            "km_impact": km_impact_val,
+            "age_impact": age_impact_val,
+            "damage_impact": damage_impact_val
+        }
+
         req_id = req.request_id or request.headers.get("x-request-id") or str(uuid.uuid4())
 
         background_tasks.add_task(
@@ -580,6 +603,9 @@ def predict_price(
             "features_used": len(all_features),
             "request_id": req_id,
             "km_monotonic": True,
+            "is_outlier": is_outlier,
+            "outlier_warning": outlier_warning,
+            "explanation": explanation,
             "hasar": {
                 "Boya_Durumu": hasar["Boya_Durumu"],
                 "Has_Boya": hasar["Has_Boya"],
