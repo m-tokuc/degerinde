@@ -165,28 +165,27 @@ export default function Home() {
       });
       
       if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        let errMsg = "Değerleme sırasında bir hata oluştu.";
-        if (errData.detail) {
-          if (Array.isArray(errData.detail)) {
-            errMsg = errData.detail.map(e => `${e.loc?.join('.') || 'Alan'}: ${e.msg}`).join(', ');
-          } else if (typeof errData.detail === 'string') {
-            errMsg = errData.detail;
-          } else {
-            errMsg = JSON.stringify(errData.detail);
-          }
-        }
-        throw new Error(errMsg);
+        throw new Error("Sunucu yanıt vermedi.");
       }
       
       const data = await res.json();
       setResult(data);
     } catch (err) {
-      setError(err.message);
+      setError("Sunucuya bağlanılamadı, lütfen tekrar deneyin.");
     } finally {
       clearInterval(loaderInterval);
       setLoadingPredict(false);
     }
+  };
+
+  const handleKmChange = (e) => {
+    const rawVal = e.target.value.replace(/\D/g, "");
+    setFormData({...formData, Kilometre: rawVal});
+  };
+
+  const formatKm = (val) => {
+    if (!val) return "";
+    return parseInt(val, 10).toLocaleString('tr-TR');
   };
 
   const formatMoney = (val) => {
@@ -205,8 +204,8 @@ export default function Home() {
               <path d="M30 50 L45 65 L70 35" stroke="white" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round"/>
               <path d="M25 75 L75 75" stroke="white" strokeWidth="6" strokeLinecap="round" strokeOpacity="0.5"/>
             </svg>
-            <span className="text-xl font-extrabold text-slate-900 tracking-tight">
-              Değerinde<span className="text-blue-600">.</span>
+            <span className="text-2xl tracking-tight">
+              <span className="font-extrabold text-blue-700">Değer</span><span className="font-medium text-slate-500">inde.</span>
             </span>
           </div>
         </div>
@@ -267,7 +266,7 @@ export default function Home() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">Kilometre *</label>
-                  <input required type="number" name="Kilometre" min="0" value={formData.Kilometre} onChange={handleChange} placeholder="Örn: 85000" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" />
+                  <input required type="text" inputMode="numeric" name="Kilometre" value={formatKm(formData.Kilometre)} onChange={handleKmChange} placeholder="Örn: 85.000" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:invalid:border-red-500 focus:invalid:ring-red-500 outline-none transition" />
                 </div>
               </div>
             </div>
@@ -386,7 +385,7 @@ export default function Home() {
               </div>
             </div>
 
-            <button type="submit" disabled={loadingPredict || !formData.Marka || !formData.Seri || !formData.Model || !formData.Yil || !formData.Kilometre} className="w-full mt-10 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition duration-200 shadow-xl shadow-blue-600/30 flex justify-center items-center disabled:opacity-50 disabled:cursor-not-allowed">
+            <button type="submit" disabled={loadingPredict || !formData.Marka || !formData.Seri || !formData.Model || !formData.Yil || !formData.Kilometre} className="w-full mt-10 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition duration-200 shadow-xl shadow-blue-600/30 flex justify-center items-center disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none disabled:cursor-not-allowed">
               {loadingPredict ? "Hesaplanıyor..." : "Fiyatı Hesapla"}
             </button>
           </form>
@@ -523,6 +522,17 @@ export default function Home() {
           )}
         </div>
       </main>
+
+      {/* Corporate Footer */}
+      <footer className="mt-auto py-8 text-center text-slate-400">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col items-center justify-center gap-2">
+          <p className="text-sm font-medium">© 2026 Değerinde. Tüm hakları saklıdır.</p>
+          <p className="text-xs flex items-center gap-1 opacity-80">
+            <svg className="w-3.5 h-3.5 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            XGBoost Machine Learning algoritmaları ile desteklenmektedir.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
