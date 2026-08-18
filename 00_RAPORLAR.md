@@ -27,3 +27,11 @@ Bugün projenin frontend tarafını hazır şablon görüntüsünden kurtarmaya 
 Backend tarafında ise XGBoost modelinin uç verilerde sapıtıp eksi veya çok mantıksız fiyatlar vermesini engellemek için kod tarafına min ve max fiyat sınırları (hurda limiti vs.) ekledim. Son olarak da `test_model_edge_cases.py` adında bir script yazıp modeli çok yüksek km, çok eski araç veya 0 km lüks araç gibi uç senaryolarla test ettim. Sistem outlier (aykırı) durumlarını patlamadan ve mantıklı bir şekilde yakalayabiliyor.
 
 Yarın domain yönlendirmeleri ve nginx/sunucu ayarlarına geçeceğim.
+
+---
+
+## 📅 18 Ağustos Raporu
+
+Bugün dünden planladığım gibi projenin domain ve sunucu yönlendirme işlerini hallettim. Sunucuya IP ve port yazıp girmek yerine doğrudan web sitesi gibi açılması için degerinde.duckdns.org adresini bağladım. Ardından SSL sertifikasını kurup siteyi güvenli bağlantıya (HTTPS) geçirdim. Nginx tarafında gerekli ayarları yapıp arayüz ile backend'i tek bir adreste topladım. Sunucuya aşırı yük binmesini engellemek için istek sınırlandırması ve sayfanın daha hızlı yüklenmesi için sıkıştırma ayarlarını açtım. Son olarak frontend tarafında mobil görünüm ve arama motoru etiketlerini güncelleyip Docker'ı sunucuda baştan derledim. Sistem şu an alan adı üzerinden sorunsuz çalışıyor.
+
+Yarın model ve arayüz tarafında 13 parçalı ekspertiz (boya/değişen) durumlarını eklemeye odaklanacağım.
