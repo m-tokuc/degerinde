@@ -84,6 +84,14 @@ def load_data_cache():
         logger.warning(f"Önbellek yüklenirken hata oluştu (seed verisi fallback): {e}")
         if os.path.exists("seed_data.jsonl"):
             _combo_cache = pd.read_json("seed_data.jsonl", lines=True)
+            # Normalize Turkish column names from raw scrape format
+            if "Yıl" in _combo_cache.columns and "Yil" not in _combo_cache.columns:
+                _combo_cache = _combo_cache.rename(columns={"Yıl": "Yil"})
+            if "Kilometre" in _combo_cache.columns:
+                _combo_cache["Yil"] = pd.to_numeric(_combo_cache["Yil"], errors="coerce")
+    # Always ensure 'Yil' column exists (not 'Yıl')
+    if _combo_cache is not None and "Yıl" in _combo_cache.columns and "Yil" not in _combo_cache.columns:
+        _combo_cache = _combo_cache.rename(columns={"Yıl": "Yil"})
 
 @app.on_event("startup")
 def startup_event():
@@ -283,7 +291,9 @@ def dynamic_options(req: DynamicOptionsRequest):
     if req.Model and req.Model != "Belirtilmemiş":
         df = df[df["Model"] == req.Model]
     if req.Yil:
-        df = df[df["Yil"] == req.Yil]
+        yil_col = "Yil" if "Yil" in df.columns else "Yıl"
+        if yil_col in df.columns:
+            df = df[df[yil_col] == req.Yil]
     if req.Vites_Tipi and req.Vites_Tipi != "Belirtilmemiş":
         df = df[df["Vites_Tipi"] == req.Vites_Tipi]
     if req.Yakit_Tipi and req.Yakit_Tipi != "Belirtilmemiş":
@@ -293,7 +303,7 @@ def dynamic_options(req: DynamicOptionsRequest):
         "markalar": unique_sorted(_combo_cache["Marka"]),
         "seriler": unique_sorted(df["Seri"]) if "Seri" in df else [],
         "modeller": unique_sorted(df["Model"]) if "Model" in df else [],
-        "yillar": unique_int_sorted(df["Yil"]) if "Yil" in df else [],
+        "yillar": unique_int_sorted(df["Yil"]) if "Yil" in df.columns else (unique_int_sorted(df["Yıl"]) if "Yıl" in df.columns else []),
         "vitesler": unique_sorted(df["Vites_Tipi"]) if "Vites_Tipi" in df else [],
         "yakitlar": unique_sorted(df["Yakit_Tipi"]) if "Yakit_Tipi" in df else [],
         "kasalar": unique_sorted(df["Kasa_Tipi"]) if "Kasa_Tipi" in df else [],
