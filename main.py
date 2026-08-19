@@ -283,7 +283,7 @@ def dynamic_options(req: DynamicOptionsRequest):
     if req.Model and req.Model != "Belirtilmemiş":
         df = df[df["Model"] == req.Model]
     if req.Yil:
-        df = df[df["Yıl"] == req.Yil]
+        df = df[df["Yil"] == req.Yil]
     if req.Vites_Tipi and req.Vites_Tipi != "Belirtilmemiş":
         df = df[df["Vites_Tipi"] == req.Vites_Tipi]
     if req.Yakit_Tipi and req.Yakit_Tipi != "Belirtilmemiş":
@@ -293,7 +293,7 @@ def dynamic_options(req: DynamicOptionsRequest):
         "markalar": unique_sorted(_combo_cache["Marka"]),
         "seriler": unique_sorted(df["Seri"]) if "Seri" in df else [],
         "modeller": unique_sorted(df["Model"]) if "Model" in df else [],
-        "yillar": unique_int_sorted(df["Yıl"]) if "Yıl" in df else [],
+        "yillar": unique_int_sorted(df["Yil"]) if "Yil" in df else [],
         "vitesler": unique_sorted(df["Vites_Tipi"]) if "Vites_Tipi" in df else [],
         "yakitlar": unique_sorted(df["Yakit_Tipi"]) if "Yakit_Tipi" in df else [],
         "kasalar": unique_sorted(df["Kasa_Tipi"]) if "Kasa_Tipi" in df else [],
