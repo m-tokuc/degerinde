@@ -134,7 +134,7 @@ export default function Home() {
           
           Object.keys(fieldMap).forEach(optKey => {
             const formKey = fieldMap[optKey];
-            const availableOptions = data[optKey] ? data[optKey].map(String) : [];
+            const availableOptions = normalizedOptions[optKey] ? normalizedOptions[optKey].map(String) : [];
             
             // 1. If current value is not empty and not in the new options list, clear it
             if (next[formKey] && next[formKey] !== "" && next[formKey] !== "Belirsiz" && next[formKey] !== "Belirtilmemiş") {
