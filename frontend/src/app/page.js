@@ -517,8 +517,8 @@ export default function Home() {
                 <div className="col-span-1"></div>
               </div>
 
-              {/* Tramer TL Input */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-3">
+              {/* Tramer, Kimden, Garanti Durumu */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 pt-3">
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">Tramer Kaydı (TL)</label>
                   <input type="number" name="Tramer_TL" min="0" value={formData.Tramer_TL} onChange={handleChange} placeholder="Örn: 15.000" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm outline-none transition" />
@@ -530,8 +530,6 @@ export default function Home() {
                     {options.Kimden?.map(o => <option key={o} value={o}>{o}</option>)}
                   </select>
                 </div>
-              </div>
-            </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">Garanti Durumu</label>
                   <select name="Garanti_Durumu" value={formData.Garanti_Durumu} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm outline-none transition">
@@ -589,7 +587,7 @@ export default function Home() {
             </div>
           )}
 
-          {!loadingPredict && result && result.status === "success" && (
+          {!loadingPredict && result && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               
               {/* Outlier Warning */}
