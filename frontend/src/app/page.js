@@ -91,10 +91,13 @@ export default function Home() {
   const fetchOptions = async (currentFilters) => {
     setLoadingOptions(true);
     try {
+      const cleanFilters = Object.fromEntries(
+        Object.entries(currentFilters).filter(([_, v]) => v !== "")
+      );
       const res = await fetch('/api/dynamic_options', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(currentFilters),
+        body: JSON.stringify(cleanFilters),
       });
       if (!res.ok) throw new Error("Seçenekler yüklenirken bir hata oluştu.");
       const data = await res.json();
