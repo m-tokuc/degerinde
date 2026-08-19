@@ -13,8 +13,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import text
 
-from db_connection import get_db_engine
-from app_db import log_prediction, get_db_session_factory
+from schema_clean import get_engine as get_db_engine
+from app_db import log_prediction, SessionLocal as get_db_session_factory
 from feature_engineering import (
     parse_tramer_tl,
     parse_hasar_flags,
