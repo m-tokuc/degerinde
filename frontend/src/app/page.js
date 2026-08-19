@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 export default function Home() {
   const [formData, setFormData] = useState({
@@ -93,7 +92,7 @@ export default function Home() {
   const fetchOptions = async (currentFilters) => {
     setLoadingOptions(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/dynamic_options`, {
+      const res = await fetch('/api/dynamic_options', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(currentFilters),
@@ -156,11 +155,11 @@ export default function Home() {
             }
           });
           
-          return changed ? next : prev;
+      return changed ? next : prev;
         });
       }
     } catch (err) {
-      console.error(err);
+      console.error("API Fetch Error:", err);
       setError("Bağlantı hatası: Araç verileri getirilemedi.");
     } finally {
       setLoadingOptions(false);
@@ -219,7 +218,7 @@ export default function Home() {
         Motor_Gucu_hp: formData.Motor_Gucu_hp ? parseFloat(formData.Motor_Gucu_hp) : null,
       };
 
-      const res = await fetch(`${API_BASE_URL}/api/predict`, {
+      const res = await fetch('/api/predict', {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
