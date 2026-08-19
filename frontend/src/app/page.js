@@ -37,6 +37,48 @@ export default function Home() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
 
+  const initialAppraisal = {
+    sol_on_camurluk: 0, kaput: 0, sag_on_camurluk: 0, tavan: 0,
+    sol_on_kapi: 0, sag_on_kapi: 0, sol_arka_kapi: 0, sag_arka_kapi: 0,
+    sol_arka_camurluk: 0, bagaj: 0, sag_arka_camurluk: 0,
+    on_tampon: 0, arka_tampon: 0
+  };
+  const [appraisal, setAppraisal] = useState(initialAppraisal);
+
+  const togglePart = (key) => {
+    setAppraisal(prev => ({
+      ...prev,
+      [key]: (prev[key] + 1) % 4
+    }));
+  };
+
+  const resetAppraisal = () => {
+    setAppraisal(initialAppraisal);
+  };
+
+  const getPartStyle = (state) => {
+    const base = "p-2 md:p-3 text-xs rounded-xl text-center cursor-pointer transition select-none flex flex-col items-center justify-center min-h-[50px] border ";
+    switch (state) {
+      case 1:
+        return base + "bg-amber-50 text-amber-900 border-amber-400 hover:bg-amber-100 shadow-sm ring-1 ring-amber-300";
+      case 2:
+        return base + "bg-orange-100 text-orange-900 border-orange-400 hover:bg-orange-200 shadow-sm font-semibold ring-1 ring-orange-300";
+      case 3:
+        return base + "bg-red-100 text-red-900 border-red-500 hover:bg-red-200 shadow-sm font-bold ring-1 ring-red-400";
+      default:
+        return base + "bg-white text-slate-700 border-slate-200 hover:border-blue-400 hover:bg-blue-50/20";
+    }
+  };
+
+  const getPartBadge = (state) => {
+    switch (state) {
+      case 1: return <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-200 text-amber-800 mt-0.5">Lokal</span>;
+      case 2: return <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-orange-200 text-orange-800 mt-0.5">Boyalı</span>;
+      case 3: return <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-red-200 text-red-800 mt-0.5">Değişen</span>;
+      default: return <span className="text-[9px] text-slate-400 mt-0.5">Orijinal</span>;
+    }
+  };
+
   const loadingMessages = [
     "Piyasa verileri taranıyor...",
     "Donanım özellikleri analiz ediliyor...",
@@ -58,8 +100,26 @@ export default function Home() {
       });
       if (!res.ok) throw new Error("Seçenekler yüklenirken bir hata oluştu.");
       const data = await res.json();
-      if (data.status === "success") {
-        setOptions(data);
+      if (data.status === "success" || data.markalar || data.Marka) {
+        const normalizedOptions = {
+          Marka: data.Marka || data.markalar || [],
+          Seri: data.Seri || data.seriler || [],
+          Model: data.Model || data.modeller || [],
+          Yil: data.Yil || data.yillar || [],
+          Vites_Tipi: data.Vites_Tipi || data.vitesler || [],
+          Yakit_Tipi: data.Yakit_Tipi || data.yakitlar || [],
+          Kasa_Tipi: data.Kasa_Tipi || data.kasalar || [],
+          Renk: data.Renk || [],
+          Cekis: data.Cekis || [],
+          Motor_Hacmi: data.Motor_Hacmi || [],
+          Motor_Gucu: data.Motor_Gucu || [],
+          Garanti_Durumu: data.Garanti_Durumu || [],
+          Silindir_Sayisi: data.Silindir_Sayisi || [],
+          Koltuk_Sayisi: data.Koltuk_Sayisi || [],
+          Kimden: data.Kimden || [],
+          Boya_Degisen: data.Boya_Degisen || [],
+        };
+        setOptions(normalizedOptions);
         
         // Auto-select fields that have exactly 1 option and clear invalid ones
         setFormData(prev => {
@@ -148,9 +208,10 @@ export default function Home() {
     }, 2000);
 
     try {
-      // Cast numeric fields properly to prevent Pydantic 422 errors
+      // Cast numeric fields properly & include 13-part appraisal state
       const payload = {
         ...formData,
+        ...appraisal,
         Yil: parseInt(formData.Yil, 10) || 0,
         Kilometre: parseInt(formData.Kilometre, 10) || 0,
         Tramer_TL: parseFloat(formData.Tramer_TL) || 0,
@@ -351,24 +412,116 @@ export default function Home() {
 
             <hr className="border-slate-100" />
 
-            {/* Section 3: Condition Details */}
+            {/* Section 3: 13-Part Interactive Car Appraisal */}
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-blue-600 uppercase tracking-wider mb-2 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xs">3</span>
-                Ekspertiz ve Diğer Durumlar
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-blue-600 uppercase tracking-wider flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xs">3</span>
+                  13 Parçalı Ekspertiz Seçimi
+                </h3>
+                <button type="button" onClick={resetAppraisal} className="text-xs text-slate-500 hover:text-blue-600 underline font-medium">
+                  Tümünü Orijinal Yap
+                </button>
+              </div>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">Boya / Değişen Durumu</label>
-                  <select name="Boya_Degisen" value={formData.Boya_Degisen} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm outline-none transition">
-                    <option value="">Belirsiz</option>
-                    {options.Boya_Degisen?.map(o => <option key={o} value={o}>{o}</option>)}
-                  </select>
+              <p className="text-xs text-slate-500">Parçaya tıklayarak durumu değiştirin: <span className="text-emerald-700 font-semibold">Orijinal</span> → <span className="text-amber-700 font-semibold">Lokal Boya</span> → <span className="text-orange-700 font-semibold">Boyalı</span> → <span className="text-red-700 font-semibold">Değişen</span></p>
+
+              {/* Status Badges Summary */}
+              <div className="flex flex-wrap gap-2 text-xs font-semibold py-1">
+                <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  {Object.values(appraisal).filter(v => v === 0).length} Orijinal
+                </span>
+                <span className="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                  {Object.values(appraisal).filter(v => v === 1).length} Lokal Boya
+                </span>
+                <span className="px-2.5 py-1 rounded-full bg-orange-100 text-orange-800 border border-orange-200">
+                  {Object.values(appraisal).filter(v => v === 2).length} Boyalı
+                </span>
+                <span className="px-2.5 py-1 rounded-full bg-red-100 text-red-800 border border-red-200">
+                  {Object.values(appraisal).filter(v => v === 3).length} Değişen
+                </span>
+              </div>
+
+              {/* Interactive Car Body Grid */}
+              <div className="grid grid-cols-3 gap-2 bg-slate-100 p-3.5 rounded-2xl border border-slate-200 shadow-inner">
+                {/* Row 1: Front Bumper */}
+                <div className="col-span-1"></div>
+                <div onClick={() => togglePart('on_tampon')} className={getPartStyle(appraisal.on_tampon)}>
+                  <span className="font-bold">Ön Tampon</span>
+                  {getPartBadge(appraisal.on_tampon)}
                 </div>
+                <div className="col-span-1"></div>
+
+                {/* Row 2: Hood & Front Fenders */}
+                <div onClick={() => togglePart('sol_on_camurluk')} className={getPartStyle(appraisal.sol_on_camurluk)}>
+                  <span>Sol Ön Çamurluk</span>
+                  {getPartBadge(appraisal.sol_on_camurluk)}
+                </div>
+                <div onClick={() => togglePart('kaput')} className={getPartStyle(appraisal.kaput)}>
+                  <span className="font-bold">Motor Kaputu</span>
+                  {getPartBadge(appraisal.kaput)}
+                </div>
+                <div onClick={() => togglePart('sag_on_camurluk')} className={getPartStyle(appraisal.sag_on_camurluk)}>
+                  <span>Sağ Ön Çamurluk</span>
+                  {getPartBadge(appraisal.sag_on_camurluk)}
+                </div>
+
+                {/* Row 3: Front Doors & Roof */}
+                <div onClick={() => togglePart('sol_on_kapi')} className={getPartStyle(appraisal.sol_on_kapi)}>
+                  <span>Sol Ön Kapı</span>
+                  {getPartBadge(appraisal.sol_on_kapi)}
+                </div>
+                <div onClick={() => togglePart('tavan')} className={getPartStyle(appraisal.tavan)}>
+                  <span className="font-bold">Tavan</span>
+                  {getPartBadge(appraisal.tavan)}
+                </div>
+                <div onClick={() => togglePart('sag_on_kapi')} className={getPartStyle(appraisal.sag_on_kapi)}>
+                  <span>Sağ Ön Kapı</span>
+                  {getPartBadge(appraisal.sag_on_kapi)}
+                </div>
+
+                {/* Row 4: Rear Doors */}
+                <div onClick={() => togglePart('sol_arka_kapi')} className={getPartStyle(appraisal.sol_arka_kapi)}>
+                  <span>Sol Arka Kapı</span>
+                  {getPartBadge(appraisal.sol_arka_kapi)}
+                </div>
+                <div className="bg-slate-200/60 rounded-xl flex flex-col items-center justify-center text-[10px] text-slate-400 font-bold tracking-widest uppercase p-2 border border-slate-300/40">
+                  <svg className="w-5 h-5 text-slate-400/60 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h8m-8 4h8m-8 4h8"></path></svg>
+                  KABİN
+                </div>
+                <div onClick={() => togglePart('sag_arka_kapi')} className={getPartStyle(appraisal.sag_arka_kapi)}>
+                  <span>Sağ Arka Kapı</span>
+                  {getPartBadge(appraisal.sag_arka_kapi)}
+                </div>
+
+                {/* Row 5: Rear Fenders & Trunk */}
+                <div onClick={() => togglePart('sol_arka_camurluk')} className={getPartStyle(appraisal.sol_arka_camurluk)}>
+                  <span>Sol Arka Çamurluk</span>
+                  {getPartBadge(appraisal.sol_arka_camurluk)}
+                </div>
+                <div onClick={() => togglePart('bagaj')} className={getPartStyle(appraisal.bagaj)}>
+                  <span className="font-bold">Bagaj Kapağı</span>
+                  {getPartBadge(appraisal.bagaj)}
+                </div>
+                <div onClick={() => togglePart('sag_arka_camurluk')} className={getPartStyle(appraisal.sag_arka_camurluk)}>
+                  <span>Sağ Arka Çamurluk</span>
+                  {getPartBadge(appraisal.sag_arka_camurluk)}
+                </div>
+
+                {/* Row 6: Rear Bumper */}
+                <div className="col-span-1"></div>
+                <div onClick={() => togglePart('arka_tampon')} className={getPartStyle(appraisal.arka_tampon)}>
+                  <span className="font-bold">Arka Tampon</span>
+                  {getPartBadge(appraisal.arka_tampon)}
+                </div>
+                <div className="col-span-1"></div>
+              </div>
+
+              {/* Tramer TL Input */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-3">
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">Tramer Kaydı (TL)</label>
-                  <input type="number" name="Tramer_TL" min="0" value={formData.Tramer_TL} onChange={handleChange} placeholder="Örn: 0" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm outline-none transition" />
+                  <input type="number" name="Tramer_TL" min="0" value={formData.Tramer_TL} onChange={handleChange} placeholder="Örn: 15.000" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm outline-none transition" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">Kimden</label>
@@ -377,6 +530,8 @@ export default function Home() {
                     {options.Kimden?.map(o => <option key={o} value={o}>{o}</option>)}
                   </select>
                 </div>
+              </div>
+            </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">Garanti Durumu</label>
                   <select name="Garanti_Durumu" value={formData.Garanti_Durumu} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm outline-none transition">
@@ -450,14 +605,14 @@ export default function Home() {
                 <div className="absolute top-0 left-0 w-full h-2 bg-blue-600"></div>
                 <p className="text-slate-500 text-xs md:text-sm font-bold uppercase tracking-widest mb-4">Değerinde. Tavsiye Edilen Satış Fiyatı</p>
                 <h2 className="text-4xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-6">
-                  {formatMoney(result.predicted_price)}
+                  {formatMoney(result.tahmini_fiyat ?? result.predicted_price)}
                 </h2>
                 
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-6 border-t border-slate-100">
                   <div className="text-center sm:text-left w-full sm:w-auto">
                     <p className="text-[10px] md:text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Tahmini Piyasa Fiyat Aralığı</p>
                     <p className="text-base md:text-lg font-bold text-slate-700 bg-slate-50 px-4 py-2 rounded-xl inline-block sm:block">
-                      {formatMoney(result.confidence_low)} <span className="text-slate-300 font-normal mx-1">-</span> {formatMoney(result.confidence_high)}
+                      {formatMoney(result.fiyat_araligi?.min ?? result.confidence_low)} <span className="text-slate-300 font-normal mx-1">-</span> {formatMoney(result.fiyat_araligi?.max ?? result.confidence_high)}
                     </p>
                   </div>
                   <div className="hidden sm:block h-12 w-px bg-slate-200"></div>
@@ -498,7 +653,26 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Model Info */}
+              {/* Damage Analysis Summary Card */}
+              {result.hasar_analizi && (
+                <div className="bg-white p-6 rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-100">
+                  <h3 className="text-sm font-bold text-slate-800 mb-3 px-2 flex items-center gap-2">
+                    <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    Ekspertiz ve Hasar Özeti
+                  </h3>
+                  <div className="bg-slate-50 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs text-slate-500 font-medium">Tespit Edilen Kaporta Durumu</p>
+                      <p className="text-sm font-bold text-slate-800 mt-0.5">{result.hasar_analizi.Boya_Durumu}</p>
+                    </div>
+                    {result.hasar_analizi.Tramer_TL > 0 && (
+                      <div className="bg-rose-100 text-rose-800 text-xs font-semibold px-3 py-1.5 rounded-xl">
+                        Tramer: {formatMoney(result.hasar_analizi.Tramer_TL)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
               <div className="bg-white p-6 rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-100">
                 <h3 className="text-sm font-bold text-slate-800 mb-4 px-2">Model Metrikleri & Şeffaflık</h3>
                 <div className="grid grid-cols-2 gap-3 md:gap-4">
