@@ -1,7 +1,5 @@
 # Proje Raporları
 
----
-
 ## 📅 13 Ağustos Raporu
 
 Bugün projemizi lokalden canlı sunucuya taşıma işlerine başladım. İlk olarak frontend (Next.js) ve backend (FastAPI) için ayrı ayrı Dockerfile dosyaları yazdım. Sonra PostgreSQL veritabanını da dahil edip hepsini tek bir docker-compose dosyasında birleştirdim ki sunucuda tek komutla çalışabilsinler. Yapay zeka modelinin dosya yollarını da yeni klasör yapısına göre güncelledim. Günün sonunda Oracle Cloud üzerinden ücretsiz bir Ubuntu sunucu açtım, SSH ile terminalden bağlanıp temel kurulumları hallettim.
@@ -35,3 +33,9 @@ Yarın domain yönlendirmeleri ve nginx/sunucu ayarlarına geçeceğim.
 Bugün dünden planladığım gibi projenin domain ve sunucu yönlendirme işlerini hallettim. Sunucuya IP ve port yazıp girmek yerine doğrudan web sitesi gibi açılması için degerinde.duckdns.org adresini bağladım. Ardından SSL sertifikasını kurup siteyi güvenli bağlantıya (HTTPS) geçirdim. Nginx tarafında gerekli ayarları yapıp arayüz ile backend'i tek bir adreste topladım. Sunucuya aşırı yük binmesini engellemek için istek sınırlandırması ve sayfanın daha hızlı yüklenmesi için sıkıştırma ayarlarını açtım. Son olarak frontend tarafında mobil görünüm ve arama motoru etiketlerini güncelleyip Docker'ı sunucuda baştan derledim. Sistem şu an alan adı üzerinden sorunsuz çalışıyor.
 
 Yarın model ve arayüz tarafında 13 parçalı ekspertiz (boya/değişen) durumlarını eklemeye odaklanacağım.
+
+## 📅 19 Ağustos Raporu
+
+Bugün ağırlıklı olarak backend ve arayüz entegrasyonundaki kritik hataları çözmeye odaklandım. Frontend tarafında 13 parçalı ekspertiz (boya/değişen) seçim ekranını sisteme bağladım, mobil görünümlerdeki grid kaymalarını düzelttim ve olası API kopmalarında sayfanın çökmesini engellemek için arayüze hata bildirim (toast) mekanizması ekledim. Tek kalan seçeneklerin otomatik seçilmesi özelliğindeki boş veri gönderme sorununu da hallettim. Backend tarafında ise yapay zeka modelinin tahmin sırasında Türkçe karakterli sütun isimleri yüzünden patlamasına sebep olan uyuşmazlığı giderdim. Ayrıca veritabanına fiyat tahmini loglanırken oluşan session hatasını çözdüm. Docker-compose tarafındaki inatçı güncelleme sorunlarından kurtulmak için sistemi sıfırdan temizleyip yeniden ayağa kaldırdım. Şu an arayüz ile yapay zeka modeli tam entegre, sorunsuz ve hızlı bir şekilde çalışıyor.
+
+Sıradaki hedefim arka planda her gece çalışıp yeni ilanları toplayacak bir scraper (cron) yazmak ve yapay zekanın "Bu fiyatı neden verdiğini" açıklayabilmesi için (km düşük +15k, kaput değişen -30k gibi) SHAP entegrasyonunu sağlamak olacak. Modelin sunucuyu kapatmadan güncellenebilmesi (zero-downtime) için de bir endpoint eklemeyi planlıyorum.
