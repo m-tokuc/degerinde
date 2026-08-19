@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-
+import { toast } from 'react-hot-toast';
 
 export default function Home() {
   const [formData, setFormData] = useState({
@@ -34,7 +34,6 @@ export default function Home() {
   const [loadingPredict, setLoadingPredict] = useState(false);
   const [loadingMessageIdx, setLoadingMessageIdx] = useState(0);
   const [result, setResult] = useState(null);
-  const [error, setError] = useState(null);
 
   const initialAppraisal = {
     sol_on_camurluk: 0, kaput: 0, sag_on_camurluk: 0, tavan: 0,
@@ -56,7 +55,7 @@ export default function Home() {
   };
 
   const getPartStyle = (state) => {
-    const base = "p-2 md:p-3 text-xs rounded-xl text-center cursor-pointer transition select-none flex flex-col items-center justify-center min-h-[50px] border ";
+    const base = "p-1.5 md:p-3 text-[10px] leading-tight md:text-xs rounded-xl text-center cursor-pointer transition select-none flex flex-col items-center justify-center min-h-[44px] md:min-h-[50px] border ";
     switch (state) {
       case 1:
         return base + "bg-amber-50 text-amber-900 border-amber-400 hover:bg-amber-100 shadow-sm ring-1 ring-amber-300";
@@ -71,10 +70,10 @@ export default function Home() {
 
   const getPartBadge = (state) => {
     switch (state) {
-      case 1: return <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-200 text-amber-800 mt-0.5">Lokal</span>;
-      case 2: return <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-orange-200 text-orange-800 mt-0.5">Boyalı</span>;
-      case 3: return <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-red-200 text-red-800 mt-0.5">Değişen</span>;
-      default: return <span className="text-[9px] text-slate-400 mt-0.5">Orijinal</span>;
+      case 1: return <span className="text-[7.5px] md:text-[9px] font-bold px-1 md:px-1.5 py-0.5 rounded bg-amber-200 text-amber-800 mt-0.5">Lokal</span>;
+      case 2: return <span className="text-[7.5px] md:text-[9px] font-bold px-1 md:px-1.5 py-0.5 rounded bg-orange-200 text-orange-800 mt-0.5">Boyalı</span>;
+      case 3: return <span className="text-[7.5px] md:text-[9px] font-bold px-1 md:px-1.5 py-0.5 rounded bg-red-200 text-red-800 mt-0.5">Değişen</span>;
+      default: return <span className="text-[7.5px] md:text-[9px] text-slate-400 mt-0.5">Orijinal</span>;
     }
   };
 
@@ -160,7 +159,7 @@ export default function Home() {
       }
     } catch (err) {
       console.error("API Fetch Error:", err);
-      setError("Bağlantı hatası: Araç verileri getirilemedi.");
+      toast.error("Araç seçenekleri yüklenirken hata oluştu.");
     } finally {
       setLoadingOptions(false);
     }
@@ -199,7 +198,6 @@ export default function Home() {
     e.preventDefault();
     setLoadingPredict(true);
     setLoadingMessageIdx(0);
-    setError(null);
     setResult(null);
 
     const loaderInterval = setInterval(() => {
@@ -231,7 +229,7 @@ export default function Home() {
       const data = await res.json();
       setResult(data);
     } catch (err) {
-      setError("Sunucuya bağlanılamadı, lütfen tekrar deneyin.");
+      toast.error("Sunucuya bağlanılamadı, lütfen tekrar deneyin.");
     } finally {
       clearInterval(loaderInterval);
       setLoadingPredict(false);
@@ -442,7 +440,7 @@ export default function Home() {
               </div>
 
               {/* Interactive Car Body Grid */}
-              <div className="grid grid-cols-3 gap-2 bg-slate-100 p-3.5 rounded-2xl border border-slate-200 shadow-inner">
+              <div className="grid grid-cols-3 gap-1.5 md:gap-2 bg-slate-100 p-2 md:p-3.5 rounded-2xl border border-slate-200 shadow-inner">
                 {/* Row 1: Front Bumper */}
                 <div className="col-span-1"></div>
                 <div onClick={() => togglePart('on_tampon')} className={getPartStyle(appraisal.on_tampon)}>
@@ -547,15 +545,6 @@ export default function Home() {
 
         {/* Right Side: Results */}
         <div className="lg:col-span-5 flex flex-col h-full sticky top-24">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 p-5 rounded-2xl mb-6 text-sm shadow-sm flex items-start gap-4">
-              <span className="text-2xl shrink-0">⚠️</span>
-              <div>
-                <strong className="block font-bold mb-1">İşlem Başarısız</strong>
-                {error}
-              </div>
-            </div>
-          )}
 
           {loadingPredict && (
             <div className="h-full min-h-[500px] flex flex-col items-center justify-center border-2 border-slate-100 rounded-3xl p-6 md:p-10 text-center bg-white shadow-xl shadow-slate-200/50">
@@ -694,7 +683,7 @@ export default function Home() {
             </div>
           )}
 
-          {!loadingPredict && !result && !error && (
+          {!loadingPredict && !result && (
             <div className="h-full min-h-[500px] flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-200 rounded-3xl p-10 text-center bg-white/50">
               <div className="w-32 h-32 mb-6 flex items-center justify-center opacity-25 text-slate-600">
                 <svg className="w-full h-full" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="3">
