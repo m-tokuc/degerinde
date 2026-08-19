@@ -322,17 +322,18 @@ def predict(req: CarFeaturesRequest, request: Request):
         "Marka": req.Marka,
         "Seri": req.Seri,
         "Model": req.Model,
-        "Kasa_Tipi": req.Kasa_Tipi,
-        "Vites_Tipi": req.Vites_Tipi,
-        "Yakit_Tipi": req.Yakit_Tipi,
-        "Cekis": req.Cekis,
+        "Kasa Tipi": req.Kasa_Tipi,
+        "Vites Tipi": req.Vites_Tipi,
+        "Yakıt Tipi": req.Yakit_Tipi,
+        "Çekiş": req.Cekis,
         "Renk": req.Renk,
         "Kimden": req.Kimden,
-        "Garanti_Durumu": req.Garanti_Durumu,
-        "Silindir_Sayisi": str(req.Silindir_Sayisi or "4"),
-        "Koltuk_Sayisi": str(req.Koltuk_Sayisi or "5"),
+        "Garanti Durumu": req.Garanti_Durumu,
+        "Silindir Sayısı": str(req.Silindir_Sayisi or "4"),
+        "Koltuk Sayısı": str(req.Koltuk_Sayisi or "5"),
         "Boya_Durumu": hasar["Boya_Durumu"],
         "Arac_Yasi": arac_yasi,
+        "Yıl": req.Yil,
         "Kilometre": req.Kilometre,
         "Yillik_Ortalama_KM": yillik_km,
         "Motor_Hacmi_cc": req.Motor_Hacmi_cc or 1600.0,
@@ -359,8 +360,7 @@ def predict(req: CarFeaturesRequest, request: Request):
 
     # Veritabanına Loglama
     try:
-        session_factory = get_db_session_factory()
-        with session_factory() as session:
+        with get_db_session_factory() as session:
             log_prediction(
                 session=session,
                 request_data=req.model_dump(),
