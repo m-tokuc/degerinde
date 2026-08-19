@@ -11,6 +11,13 @@ import gc
 import re
 
 # --- CONFIGURATION ---
+USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/114.0"
+]
 INPUT_FILE = "cleaned_links.txt"
 OUTPUT_FILE = "araba_verileri.jsonl"
 CHECKPOINT_FILE = "islenen_linkler.txt"
@@ -144,9 +151,10 @@ async def fetch_and_process(url, session, semaphore, output_lock, processed_lock
         for attempt in range(1, MAX_RETRIES + 1):
             try:
                 # Anti-Ban Pacing
-                await asyncio.sleep(random.uniform(0.5, 1.2))
+                await asyncio.sleep(random.uniform(2, 5))
                 
-                response = await session.get(url, timeout=15)
+                headers = {"User-Agent": random.choice(USER_AGENTS)}
+                response = await session.get(url, headers=headers, timeout=15)
                 
                 if response.status_code == 429:
                     logger.warning(f"⚠️ Rate Limit (HTTP 429) algılandı. {attempt * 10} sn bekleniyor... ({url})")

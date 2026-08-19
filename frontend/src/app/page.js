@@ -295,37 +295,53 @@ export default function Home() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">Marka *</label>
-                  <select required name="Marka" value={formData.Marka} onChange={handleChange} disabled={loadingOptions} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition disabled:opacity-50 appearance-none">
+                  {loadingOptions && (!options.Marka || options.Marka.length === 0) ? (
+                    <div className="w-full h-[46px] bg-slate-200 animate-pulse rounded-lg"></div>
+                  ) : (
+                    <select required name="Marka" value={formData.Marka} onChange={handleChange} disabled={loadingOptions} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition disabled:opacity-50 appearance-none">
                     <option value="">Marka Seçin</option>
                     {options.Marka?.map(o => <option key={o} value={o}>{o}</option>)}
                   </select>
+                  )}
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">Seri *</label>
-                  <select required name="Seri" value={formData.Seri} onChange={handleChange} disabled={!formData.Marka || loadingOptions} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition disabled:opacity-50 appearance-none">
+                  {loadingOptions && (!options.Seri || options.Seri.length === 0) ? (
+                    <div className="w-full h-[46px] bg-slate-200 animate-pulse rounded-lg"></div>
+                  ) : (
+                    <select required name="Seri" value={formData.Seri} onChange={handleChange} disabled={!formData.Marka || loadingOptions} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition disabled:opacity-50 appearance-none">
                     <option value="">Seri Seçin</option>
                     {options.Seri?.map(o => <option key={o} value={o}>{o}</option>)}
                   </select>
+                  )}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 gap-5">
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">Model / Donanım *</label>
-                  <select required name="Model" value={formData.Model} onChange={handleChange} disabled={!formData.Seri || loadingOptions} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition disabled:opacity-50 appearance-none">
+                  {loadingOptions && (!options.Model || options.Model.length === 0) ? (
+                    <div className="w-full h-[46px] bg-slate-200 animate-pulse rounded-lg"></div>
+                  ) : (
+                    <select required name="Model" value={formData.Model} onChange={handleChange} disabled={!formData.Seri || loadingOptions} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition disabled:opacity-50 appearance-none">
                     <option value="">Donanım Seçin</option>
                     {options.Model?.map(o => <option key={o} value={o}>{o}</option>)}
                   </select>
+                  )}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">Yıl *</label>
-                  <select required name="Yil" value={formData.Yil} onChange={handleChange} disabled={!formData.Model || loadingOptions} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition disabled:opacity-50 appearance-none">
+                  {loadingOptions && (!options.Yil || options.Yil.length === 0) ? (
+                    <div className="w-full h-[46px] bg-slate-200 animate-pulse rounded-lg"></div>
+                  ) : (
+                    <select required name="Yil" value={formData.Yil} onChange={handleChange} disabled={!formData.Model || loadingOptions} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition disabled:opacity-50 appearance-none">
                     <option value="">Yıl Seçin</option>
                     {options.Yil?.map(o => <option key={o} value={o}>{o}</option>)}
                   </select>
+                  )}
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">Kilometre *</label>
@@ -346,66 +362,102 @@ export default function Home() {
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">Yakıt Tipi</label>
-                  <select name="Yakit_Tipi" value={formData.Yakit_Tipi} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none transition">
+                  {loadingOptions && (!options.Yakit_Tipi || options.Yakit_Tipi.length === 0) ? (
+                    <div className="w-full h-[46px] bg-slate-200 animate-pulse rounded-lg"></div>
+                  ) : (
+                    <select name="Yakit_Tipi" value={formData.Yakit_Tipi} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none transition">
                     <option value="">Belirtilmemiş</option>
                     {options.Yakit_Tipi?.map(o => <option key={o} value={o}>{o}</option>)}
                   </select>
+                  )}
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">Vites Tipi</label>
-                  <select name="Vites_Tipi" value={formData.Vites_Tipi} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none transition">
+                  {loadingOptions && (!options.Vites_Tipi || options.Vites_Tipi.length === 0) ? (
+                    <div className="w-full h-[46px] bg-slate-200 animate-pulse rounded-lg"></div>
+                  ) : (
+                    <select name="Vites_Tipi" value={formData.Vites_Tipi} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none transition">
                     <option value="">Belirtilmemiş</option>
                     {options.Vites_Tipi?.map(o => <option key={o} value={o}>{o}</option>)}
                   </select>
+                  )}
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">Kasa Tipi</label>
-                  <select name="Kasa_Tipi" value={formData.Kasa_Tipi} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none transition">
+                  {loadingOptions && (!options.Kasa_Tipi || options.Kasa_Tipi.length === 0) ? (
+                    <div className="w-full h-[46px] bg-slate-200 animate-pulse rounded-lg"></div>
+                  ) : (
+                    <select name="Kasa_Tipi" value={formData.Kasa_Tipi} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none transition">
                     <option value="">Belirtilmemiş</option>
                     {options.Kasa_Tipi?.map(o => <option key={o} value={o}>{o}</option>)}
                   </select>
+                  )}
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">Motor Hacmi (cc)</label>
-                  <select name="Motor_Hacmi_cc" value={formData.Motor_Hacmi_cc} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none transition">
+                  {loadingOptions && (!options.Motor_Hacmi_cc || options.Motor_Hacmi_cc.length === 0) ? (
+                    <div className="w-full h-[46px] bg-slate-200 animate-pulse rounded-lg"></div>
+                  ) : (
+                    <select name="Motor_Hacmi_cc" value={formData.Motor_Hacmi_cc} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none transition">
                     <option value="">Belirtilmemiş</option>
                     {options.Motor_Hacmi?.map(o => <option key={o} value={o}>{o}</option>)}
                   </select>
+                  )}
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">Motor Gücü (hp)</label>
-                  <select name="Motor_Gucu_hp" value={formData.Motor_Gucu_hp} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none transition">
+                  {loadingOptions && (!options.Motor_Gucu_hp || options.Motor_Gucu_hp.length === 0) ? (
+                    <div className="w-full h-[46px] bg-slate-200 animate-pulse rounded-lg"></div>
+                  ) : (
+                    <select name="Motor_Gucu_hp" value={formData.Motor_Gucu_hp} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none transition">
                     <option value="">Belirtilmemiş</option>
                     {options.Motor_Gucu?.map(o => <option key={o} value={o}>{o}</option>)}
                   </select>
+                  )}
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">Çekiş</label>
-                  <select name="Cekis" value={formData.Cekis} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none transition">
+                  {loadingOptions && (!options.Cekis || options.Cekis.length === 0) ? (
+                    <div className="w-full h-[46px] bg-slate-200 animate-pulse rounded-lg"></div>
+                  ) : (
+                    <select name="Cekis" value={formData.Cekis} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none transition">
                     <option value="">Belirtilmemiş</option>
                     {options.Cekis?.map(o => <option key={o} value={o}>{o}</option>)}
                   </select>
+                  )}
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">Silindir Sayısı</label>
-                  <select name="Silindir_Sayisi" value={formData.Silindir_Sayisi} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none transition">
+                  {loadingOptions && (!options.Silindir_Sayisi || options.Silindir_Sayisi.length === 0) ? (
+                    <div className="w-full h-[46px] bg-slate-200 animate-pulse rounded-lg"></div>
+                  ) : (
+                    <select name="Silindir_Sayisi" value={formData.Silindir_Sayisi} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none transition">
                     <option value="">Belirtilmemiş</option>
                     {options.Silindir_Sayisi?.map(o => <option key={o} value={o}>{o}</option>)}
                   </select>
+                  )}
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">Koltuk Sayısı</label>
-                  <select name="Koltuk_Sayisi" value={formData.Koltuk_Sayisi} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none transition">
+                  {loadingOptions && (!options.Koltuk_Sayisi || options.Koltuk_Sayisi.length === 0) ? (
+                    <div className="w-full h-[46px] bg-slate-200 animate-pulse rounded-lg"></div>
+                  ) : (
+                    <select name="Koltuk_Sayisi" value={formData.Koltuk_Sayisi} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none transition">
                     <option value="">Belirtilmemiş</option>
                     {options.Koltuk_Sayisi?.map(o => <option key={o} value={o}>{o}</option>)}
                   </select>
+                  )}
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">Renk</label>
-                  <select name="Renk" value={formData.Renk} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none transition">
+                  {loadingOptions && (!options.Renk || options.Renk.length === 0) ? (
+                    <div className="w-full h-[46px] bg-slate-200 animate-pulse rounded-lg"></div>
+                  ) : (
+                    <select name="Renk" value={formData.Renk} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none transition">
                     <option value="">Belirtilmemiş</option>
                     {options.Renk?.map(o => <option key={o} value={o}>{o}</option>)}
                   </select>
+                  )}
                 </div>
               </div>
             </div>
@@ -525,17 +577,25 @@ export default function Home() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">Kimden</label>
-                  <select name="Kimden" value={formData.Kimden} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm outline-none transition">
+                  {loadingOptions && (!options.Kimden || options.Kimden.length === 0) ? (
+                    <div className="w-full h-[46px] bg-slate-200 animate-pulse rounded-lg"></div>
+                  ) : (
+                    <select name="Kimden" value={formData.Kimden} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm outline-none transition">
                     <option value="">Belirtilmemiş</option>
                     {options.Kimden?.map(o => <option key={o} value={o}>{o}</option>)}
                   </select>
+                  )}
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">Garanti Durumu</label>
-                  <select name="Garanti_Durumu" value={formData.Garanti_Durumu} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm outline-none transition">
+                  {loadingOptions && (!options.Garanti_Durumu || options.Garanti_Durumu.length === 0) ? (
+                    <div className="w-full h-[46px] bg-slate-200 animate-pulse rounded-lg"></div>
+                  ) : (
+                    <select name="Garanti_Durumu" value={formData.Garanti_Durumu} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm outline-none transition">
                     <option value="">Belirtilmemiş</option>
                     {options.Garanti_Durumu?.map(o => <option key={o} value={o}>{o}</option>)}
                   </select>
+                  )}
                 </div>
               </div>
             </div>
@@ -613,31 +673,24 @@ export default function Home() {
               </div>
 
               {/* Explainable AI Breakdown */}
-              {result.explanation && (
+              {result.fiyat_etkenleri && result.fiyat_etkenleri.length > 0 && (
                 <div className="bg-white p-6 rounded-3xl shadow-lg shadow-slate-200/50 border border-slate-100">
                   <h3 className="text-sm font-bold text-slate-800 mb-4 px-2 flex items-center gap-2">
                     <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                    Fiyat Neden Böyle Çıktı?
+                    Yapay Zeka Analizi
                   </h3>
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center bg-slate-50 p-3 rounded-xl">
-                      <span className="text-sm text-slate-600 font-medium">Model Taban Fiyatı</span>
-                      <span className="font-bold text-slate-800">{formatMoney(result.explanation.base_average)}</span>
-                    </div>
-                    <div className="flex justify-between items-center bg-rose-50 p-3 rounded-xl">
-                      <span className="text-sm text-rose-700 font-medium">Kilometre Etkisi</span>
-                      <span className="font-bold text-rose-700">{formatMoney(result.explanation.km_impact)}</span>
-                    </div>
-                    <div className="flex justify-between items-center bg-orange-50 p-3 rounded-xl">
-                      <span className="text-sm text-orange-700 font-medium">Yaş / Yıpranma Etkisi</span>
-                      <span className="font-bold text-orange-700">{formatMoney(result.explanation.age_impact)}</span>
-                    </div>
-                    {result.explanation.damage_impact < 0 && (
-                      <div className="flex justify-between items-center bg-red-50 p-3 rounded-xl">
-                        <span className="text-sm text-red-700 font-medium">Hasar / Tramer Etkisi</span>
-                        <span className="font-bold text-red-700">{formatMoney(result.explanation.damage_impact)}</span>
+                    {result.fiyat_etkenleri.map((etken, idx) => (
+                      <div key={idx} className={`flex justify-between items-center p-3 rounded-xl ${etken.yon === 'pozitif' ? 'bg-emerald-50' : 'bg-rose-50'}`}>
+                        <div className="flex items-center gap-2">
+                          <span className={`w-2 h-2 rounded-full ${etken.yon === 'pozitif' ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
+                          <span className={`text-sm font-medium ${etken.yon === 'pozitif' ? 'text-emerald-700' : 'text-rose-700'}`}>{etken.isim}</span>
+                        </div>
+                        <span className={`font-bold ${etken.yon === 'pozitif' ? 'text-emerald-700' : 'text-rose-700'}`}>
+                          {etken.yon === 'pozitif' ? '+' : '-'}{formatMoney(etken.miktar)}
+                        </span>
                       </div>
-                    )}
+                    ))}
                   </div>
                 </div>
               )}

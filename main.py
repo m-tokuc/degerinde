@@ -13,6 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import text
 
+from explainability import PriceExplainer
 from schema_clean import get_engine as get_db_engine
 from app_db import log_prediction, SessionLocal as get_db_session_factory
 from feature_engineering import (
@@ -63,14 +64,36 @@ try:
             model = loaded_data
         is_model_loaded = True
         logger.info(f"✅ Model yüklendi: {MODEL_PATH}")
+        explainer = PriceExplainer(model_path=MODEL_PATH)
     else:
         logger.warning(f"⚠️ Model dosyası bulunamadı: {MODEL_PATH}")
+        explainer = None
 except Exception as e:
     logger.error(f"❌ Model yükleme hatası: {e}")
 
 # Veritabanı ve Önbellek
 _combo_cache = None
 FOCUS_BRANDS = []
+
+@app.post("/api/admin/reload-model")
+def reload_model():
+    global model, is_model_loaded, explainer
+    try:
+        if not os.path.exists(MODEL_PATH):
+            raise HTTPException(status_code=404, detail="Model dosyası bulunamadı.")
+            
+        loaded_data = joblib.load(MODEL_PATH)
+        if isinstance(loaded_data, dict) and "model" in loaded_data:
+            model = loaded_data["model"]
+        else:
+            model = loaded_data
+        is_model_loaded = True
+        explainer = PriceExplainer(model_path=MODEL_PATH)
+        logger.info(f"✅ Model yeniden yüklendi: {MODEL_PATH}")
+        return {"status": "success", "message": "Model başarıyla güncellendi."}
+    except Exception as e:
+        logger.error(f"❌ Model reload hatası: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 def load_data_cache():
     global _combo_cache
@@ -358,19 +381,51 @@ def predict(req: CarFeaturesRequest, request: Request):
     min_fiyat = int(round(fiyat * 0.94, -3))
     max_fiyat = int(round(fiyat * 1.06, -3))
 
+    # SHAP Analizi
+    fiyat_etkenleri = []
+    if 'explainer' in globals() and explainer and explainer.is_ready:
+        try:
+            shap_result = explainer.explain_prediction(df_in)
+            if "error" not in shap_result:
+                mapping = {
+                    "brand_model_impact": "Marka ve Model Değeri",
+                    "km_impact": "Kilometre Etkisi",
+                    "age_impact": "Araç Yaşı Etkisi",
+                    "gear_engine_impact": "Motor ve Donanım Etkisi",
+                    "damage_impact": "Hasar / Ekspertiz Durumu",
+                    "other_impact": "Diğer Faktörler"
+                }
+                for key, val in shap_result.items():
+                    if key in mapping and abs(val) > 100:
+                        fiyat_etkenleri.append({
+                            "isim": mapping[key],
+                            "miktar": abs(int(val)),
+                            "yon": "pozitif" if val > 0 else "negatif"
+                        })
+                # Etki miktarına göre sırala
+                fiyat_etkenleri.sort(key=lambda x: x["miktar"], reverse=True)
+        except Exception as e:
+            logger.warning(f"SHAP hatası: {e}")
+
     # Veritabanına Loglama
     try:
-        with get_db_session_factory() as session:
-            log_prediction(
-                session=session,
-                request_data=req.model_dump(),
-                predicted_price=fiyat,
-                client_ip=request.headers.get("x-forwarded-for", "127.0.0.1"),
-                user_agent=request.headers.get("user-agent", "web"),
-                model_version="v2"
-            )
+        log_prediction(
+            brand=req.Marka,
+            model=req.Seri,
+            trim=req.Model,
+            year=req.Yil,
+            km=req.Kilometre,
+            fuel_type=req.Yakit_Tipi,
+            gear_type=req.Vites_Tipi,
+            boya_degisen=hasar["Boya_Durumu"],
+            predicted_price=fiyat,
+            shap_explanation={"fiyat_etkenleri": fiyat_etkenleri},
+            request_id=req.request_id,
+            client_ip=request.client.host if request.client else "127.0.0.1"
+        )
     except Exception as e:
         logger.warning(f"Tahmin loglanamadı: {e}")
+
 
     return {
         "tahmini_fiyat": fiyat,
@@ -379,5 +434,6 @@ def predict(req: CarFeaturesRequest, request: Request):
             "max": max_fiyat
         },
         "hasar_analizi": hasar,
+        "fiyat_etkenleri": fiyat_etkenleri,
         "guven_skoru": 94
     }

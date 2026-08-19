@@ -623,6 +623,35 @@ def existing_clean_urls(engine: Engine) -> set[str]:
         ).fetchall()
     return {r[0] for r in rows if r[0]}
 
+def filter_anomalies(df: pd.DataFrame) -> pd.DataFrame:
+    if "Fiyat_TL" not in df.columns or "Kilometre" not in df.columns:
+        return df
+        
+    initial_len = len(df)
+    
+    # 1. Hard limits (Absurd prices and KM)
+    df = df[(df["Fiyat_TL"] >= 100_000) & (df["Fiyat_TL"] <= 50_000_000)]
+    df = df[(df["Kilometre"] >= 0) & (df["Kilometre"] <= 2_000_000)]
+    
+    # 2. IQR based outlier removal for Price grouped by Brand
+    def remove_group_outliers(group):
+        if len(group) < 5:
+            return group
+        q1 = group["Fiyat_TL"].quantile(0.25)
+        q3 = group["Fiyat_TL"].quantile(0.75)
+        iqr = q3 - q1
+        lower = q1 - 1.5 * iqr
+        upper = q3 + 1.5 * iqr
+        return group[(group["Fiyat_TL"] >= lower) & (group["Fiyat_TL"] <= upper)]
+        
+    if not df.empty and "Marka" in df.columns:
+        df = df.groupby(["Marka"], group_keys=False).apply(remove_group_outliers)
+    
+    removed = initial_len - len(df)
+    if removed > 0:
+        print(f"🧹 Anomaly Filter: {removed} mantıksız ilan (outlier) temizlendi.")
+    return df
+
 
 def append_clean_rows(
     rows: Iterable[Mapping[str, Any]],
@@ -665,6 +694,13 @@ def append_clean_rows(
         return stats
 
     df = pd.DataFrame(to_insert)
+    df = filter_anomalies(df)
+    if df.empty:
+        return stats
+        
+    stats["inserted_after_anomalies"] = len(df)
+    stats["filtered_anomalies"] = len(to_insert) - len(df)
+
     # Strict column order / whitelist only
     for col in CLEAN_COLUMNS:
         if col not in df.columns:
