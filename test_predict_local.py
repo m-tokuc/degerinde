@@ -12,7 +12,19 @@ payload = {
   "Yakit_Tipi": "Dizel",
   "Kasa_Tipi": "Hatchback 5 Kapı",
   "Tramer_TL": 0,
-  "Boya_Degisen": "Orijinal"
+  "sol_on_camurluk": 0,
+  "kaput": 0,
+  "sag_on_camurluk": 0,
+  "tavan": 0,
+  "sol_on_kapi": 0,
+  "sag_on_kapi": 0,
+  "sol_arka_kapi": 0,
+  "sag_arka_kapi": 0,
+  "sol_arka_camurluk": 0,
+  "bagaj": 0,
+  "sag_arka_camurluk": 0,
+  "on_tampon": 0,
+  "arka_tampon": 0
 }
 response = client.post("/api/predict", json=payload)
 print(response.status_code)

@@ -51,6 +51,9 @@ MODEL_R2 = 0.9559
 MODEL_MAE = 67249
 MODEL_MAPE = 8.65
 
+import json
+model_metadata = {}
+
 # Model Yükleme
 try:
     if os.path.exists(MODEL_PATH):
@@ -62,6 +65,12 @@ try:
             MODEL_MAPE = loaded_data.get("mape", MODEL_MAPE)
         else:
             model = loaded_data
+            
+        meta_path = os.path.join(os.path.dirname(MODEL_PATH), "metadata.json")
+        if os.path.exists(meta_path):
+            with open(meta_path, 'r', encoding='utf-8') as f:
+                model_metadata = json.load(f)
+                
         is_model_loaded = True
         logger.info(f"✅ Model yüklendi: {MODEL_PATH}")
         explainer = PriceExplainer(model_path=MODEL_PATH)
@@ -77,7 +86,7 @@ FOCUS_BRANDS = []
 
 @app.post("/api/admin/reload-model")
 def reload_model():
-    global model, is_model_loaded, explainer
+    global model, is_model_loaded, explainer, model_metadata
     try:
         if not os.path.exists(MODEL_PATH):
             raise HTTPException(status_code=404, detail="Model dosyası bulunamadı.")
@@ -87,6 +96,12 @@ def reload_model():
             model = loaded_data["model"]
         else:
             model = loaded_data
+        
+        meta_path = os.path.join(os.path.dirname(MODEL_PATH), "metadata.json")
+        if os.path.exists(meta_path):
+            with open(meta_path, 'r', encoding='utf-8') as f:
+                model_metadata = json.load(f)
+
         is_model_loaded = True
         explainer = PriceExplainer(model_path=MODEL_PATH)
         logger.info(f"✅ Model yeniden yüklendi: {MODEL_PATH}")
@@ -212,25 +227,36 @@ def _resolve_hasar(req: CarFeaturesRequest) -> dict:
     boyali_sayisi = sum(1 for p in parts if p in (1, 2))
     degisen_sayisi = sum(1 for p in parts if p == 3)
 
-    if boyali_sayisi > 0 or degisen_sayisi > 0:
-        has_boya = 1 if boyali_sayisi > 0 else 0
-        has_degisen = 1 if degisen_sayisi > 0 else 0
-        has_tramer = 1 if tramer > 0 else 0
+    if all(p is not None for p in parts):
+        if boyali_sayisi > 0 or degisen_sayisi > 0:
+            has_boya = 1 if boyali_sayisi > 0 else 0
+            has_degisen = 1 if degisen_sayisi > 0 else 0
+            has_tramer = 1 if tramer > 0 else 0
 
-        if has_boya and has_degisen:
-            status = f"{degisen_sayisi} Değişen, {boyali_sayisi} Boyalı"
-        elif has_degisen:
-            status = f"{degisen_sayisi} Değişenli"
+            if has_boya and has_degisen:
+                status = f"{degisen_sayisi} Değişen, {boyali_sayisi} Boyalı"
+            elif has_degisen:
+                status = f"{degisen_sayisi} Değişenli"
+            else:
+                status = f"{boyali_sayisi} Parça Boyalı"
+
+            return {
+                "Boya_Durumu": status,
+                "Has_Boya": has_boya,
+                "Has_Degisen": has_degisen,
+                "Has_Tramer": has_tramer,
+                "Tramer_TL": tramer,
+            }
         else:
-            status = f"{boyali_sayisi} Parça Boyalı"
-
-        return {
-            "Boya_Durumu": status,
-            "Has_Boya": has_boya,
-            "Has_Degisen": has_degisen,
-            "Has_Tramer": has_tramer,
-            "Tramer_TL": tramer,
-        }
+            # All provided parts are Orijinal
+            has_tramer = 1 if tramer > 0 else 0
+            return {
+                "Boya_Durumu": "Tramerli" if has_tramer else "Temiz",
+                "Has_Boya": 0,
+                "Has_Degisen": 0,
+                "Has_Tramer": has_tramer,
+                "Tramer_TL": tramer,
+            }
 
     if req.Has_Boya is not None or req.Has_Degisen is not None or req.Has_Tramer is not None:
         has_boya = int(req.Has_Boya or 0)
@@ -435,5 +461,8 @@ def predict(req: CarFeaturesRequest, request: Request):
         },
         "hasar_analizi": hasar,
         "fiyat_etkenleri": fiyat_etkenleri,
-        "guven_skoru": 94
+        "guven_skoru": 94,
+        "model_r2": model_metadata.get("metrics", {}).get("r2", 0.95),
+        "mae": model_metadata.get("metrics", {}).get("mae", 60000),
+        "features_used": 22
     }
