@@ -19,7 +19,7 @@ ERROR_LOG_FILE = "scraper_errors.log"
 
 # Güvenlik Duvarı (Cloudflare) 403 Hatası Alırsanız Bu Sayıyı Düşürün (Örn: 3 veya 5)
 # Sorunsuz çalışıyorsa daha hızlı tarama için 10-15 yapabilirsiniz.
-CONCURRENCY_LIMIT = 3
+CONCURRENCY_LIMIT = 2
 
 USER_AGENTS = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
@@ -147,8 +147,8 @@ async def fetch_with_retry(session, url, semaphore):
             if shutdown_event.is_set():
                 return None
             try:
-                # Random human pacing (Daha güvenli, 2 ile 4 saniye arası)
-                await asyncio.sleep(random.uniform(2.0, 4.0))
+                # Random human pacing (Daha güvenli, 3 ile 6 saniye arası)
+                await asyncio.sleep(random.uniform(3.0, 6.0))
                 
                 response = await session.get(url, headers=headers, timeout=15)
                 if response.status_code in [403, 429, 500, 502, 503, 504]:

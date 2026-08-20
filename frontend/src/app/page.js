@@ -448,25 +448,11 @@ export default function Home() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5 flex items-center gap-1">Motor Hacmi (cc) {autoFilledFields['Motor_Hacmi_cc'] && <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full font-bold">✨ AI</span>}</label>
-                  {loadingOptions && (!options.Motor_Hacmi || options.Motor_Hacmi.length === 0) ? (
-                    <div className="w-full h-[46px] bg-slate-200 animate-pulse rounded-lg"></div>
-                  ) : (
-                    <select name="Motor_Hacmi_cc" value={formData.Motor_Hacmi_cc} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none transition">
-                    <option value="">Belirtilmemiş</option>
-                    {options.Motor_Hacmi?.map(o => <option key={o} value={o}>{o}</option>)}
-                  </select>
-                  )}
+                  <input type="number" name="Motor_Hacmi_cc" value={formData.Motor_Hacmi_cc} onChange={handleChange} placeholder="Örn: 1598" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5 flex items-center gap-1">Motor Gücü (hp) {autoFilledFields['Motor_Gucu_hp'] && <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full font-bold">✨ AI</span>}</label>
-                  {loadingOptions && (!options.Motor_Gucu || options.Motor_Gucu.length === 0) ? (
-                    <div className="w-full h-[46px] bg-slate-200 animate-pulse rounded-lg"></div>
-                  ) : (
-                    <select name="Motor_Gucu_hp" value={formData.Motor_Gucu_hp} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none transition">
-                    <option value="">Belirtilmemiş</option>
-                    {options.Motor_Gucu?.map(o => <option key={o} value={o}>{o}</option>)}
-                  </select>
-                  )}
+                  <input type="number" name="Motor_Gucu_hp" value={formData.Motor_Gucu_hp} onChange={handleChange} placeholder="Örn: 110" className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5 flex items-center gap-1">Çekiş {autoFilledFields['Cekis'] && <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full font-bold">✨ AI</span>}</label>

@@ -395,9 +395,9 @@ def dynamic_options(req: DynamicOptionsRequest):
         "seriler": unique_sorted(df["Seri"]) if "Seri" in df else [],
         "modeller": unique_sorted(df["Model"]) if "Model" in df else [],
         "yillar": unique_int_sorted(df["Yil"]) if "Yil" in df.columns else (unique_int_sorted(df["Yıl"]) if "Yıl" in df.columns else []),
-        "vitesler": unique_sorted(df["Vites_Tipi"]) if "Vites_Tipi" in df else [],
-        "yakitlar": unique_sorted(df["Yakit_Tipi"]) if "Yakit_Tipi" in df else [],
-        "kasalar": unique_sorted(df["Kasa_Tipi"]) if "Kasa_Tipi" in df else [],
+        "vitesler": unique_sorted(_combo_cache["Vites_Tipi"]) if "Vites_Tipi" in _combo_cache else [],
+        "yakitlar": unique_sorted(_combo_cache["Yakit_Tipi"]) if "Yakit_Tipi" in _combo_cache else [],
+        "kasalar": unique_sorted(_combo_cache["Kasa_Tipi"]) if "Kasa_Tipi" in _combo_cache else [],
     }
 
 @app.post("/api/auto_fill_specs")
@@ -443,6 +443,11 @@ def predict(req: CarFeaturesRequest, request: Request):
                 (_combo_cache["Marka"] == req.Marka) & 
                 (_combo_cache["Seri"] == req.Seri)
             ]
+            if req.Model and req.Model != "Belirtilmemiş":
+                df_model = df_fallback[df_fallback["Model"] == req.Model]
+                if not df_model.empty:
+                    df_fallback = df_model
+                    
             if not df_fallback.empty:
                 if (motor_hacmi is None or motor_hacmi == 0) and "Motor_Hacmi" in df_fallback.columns:
                     valid_h = df_fallback["Motor_Hacmi"].replace("Belirtilmemiş", pd.NA).dropna()
