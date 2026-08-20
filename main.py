@@ -423,6 +423,19 @@ def predict(req: CarFeaturesRequest, request: Request):
         "Has_Boya": hasar["Has_Boya"],
         "Has_Degisen": hasar["Has_Degisen"],
         "Has_Tramer": hasar["Has_Tramer"],
+        "kaput": hasar["kaput"],
+        "tavan": hasar["tavan"],
+        "bagaj": hasar["bagaj"],
+        "sol_on_camurluk": hasar["sol_on_camurluk"],
+        "sag_on_camurluk": hasar["sag_on_camurluk"],
+        "sol_arka_camurluk": hasar["sol_arka_camurluk"],
+        "sag_arka_camurluk": hasar["sag_arka_camurluk"],
+        "sol_on_kapi": hasar["sol_on_kapi"],
+        "sag_on_kapi": hasar["sag_on_kapi"],
+        "sol_arka_kapi": hasar["sol_arka_kapi"],
+        "sag_arka_kapi": hasar["sag_arka_kapi"],
+        "on_tampon": hasar["on_tampon"],
+        "arka_tampon": hasar["arka_tampon"],
     }
 
     df_in = pd.DataFrame([input_data])
