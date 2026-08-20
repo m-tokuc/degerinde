@@ -398,11 +398,21 @@ def dynamic_options(req: DynamicOptionsRequest):
     elif req.Marka and req.Marka != "Belirtilmemiş":
         df_for_years = _combo_cache[_combo_cache["Marka"] == req.Marka]
 
+    yillar_list = []
+    if "Yil" in df_for_years.columns:
+        yillar_list = unique_int_sorted(df_for_years["Yil"])
+    elif "Yıl" in df_for_years.columns:
+        yillar_list = unique_int_sorted(df_for_years["Yıl"])
+        
+    if len(yillar_list) >= 2:
+        # Interpolate between min and max to ensure no gaps
+        yillar_list = list(range(max(yillar_list), min(yillar_list) - 1, -1))
+
     return {
         "markalar": unique_sorted(_combo_cache["Marka"]),
         "seriler": unique_sorted(df["Seri"]) if "Seri" in df else [],
         "modeller": unique_sorted(df["Model"]) if "Model" in df else [],
-        "yillar": unique_int_sorted(df_for_years["Yil"]) if "Yil" in df_for_years.columns else (unique_int_sorted(df_for_years["Yıl"]) if "Yıl" in df_for_years.columns else []),
+        "yillar": yillar_list,
         "vitesler": unique_sorted(_combo_cache["Vites_Tipi"]) if "Vites_Tipi" in _combo_cache else [],
         "yakitlar": unique_sorted(_combo_cache["Yakit_Tipi"]) if "Yakit_Tipi" in _combo_cache else [],
         "kasalar": unique_sorted(_combo_cache["Kasa_Tipi"]) if "Kasa_Tipi" in _combo_cache else [],
