@@ -310,19 +310,20 @@ export default function Home() {
   const handleDownloadPDF = async () => {
     try {
       const toastId = toast.loading('PDF hazırlanıyor...');
-      const html2canvas = (await import('html2canvas')).default;
+      const htmlToImage = await import('html-to-image');
       const { jsPDF } = await import('jspdf');
       
       const element = document.getElementById('pdf-report-container');
       if (!element) return;
       
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: '#f8fafc' // slate-50
+      const imgData = await htmlToImage.toPng(element, {
+        pixelRatio: 2,
+        backgroundColor: '#f8fafc', // slate-50
+        style: {
+          transform: 'scale(1)',
+          transformOrigin: 'top left'
+        }
       });
-      
-      const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -330,7 +331,7 @@ export default function Home() {
       });
       
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const pdfHeight = (element.offsetHeight * pdfWidth) / element.offsetWidth;
       
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(`Degerinde_Rapor_${formData.Marka}_${formData.Model}.pdf`);
