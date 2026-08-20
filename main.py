@@ -396,7 +396,7 @@ def dynamic_options(req: DynamicOptionsRequest):
         "markalar": unique_sorted(_combo_cache["Marka"]),
         "seriler": unique_sorted(df["Seri"]) if "Seri" in df else [],
         "modeller": unique_sorted(df["Model"]) if "Model" in df else [],
-        "yillar": unique_int_sorted(df["Yil"]) if "Yil" in df.columns else (unique_int_sorted(df["Yıl"]) if "Yıl" in df.columns else []),
+        "yillar": unique_int_sorted(_combo_cache["Yil"]) if "Yil" in _combo_cache.columns else (unique_int_sorted(_combo_cache["Yıl"]) if "Yıl" in _combo_cache.columns else []),
         "vitesler": unique_sorted(_combo_cache["Vites_Tipi"]) if "Vites_Tipi" in _combo_cache else [],
         "yakitlar": unique_sorted(_combo_cache["Yakit_Tipi"]) if "Yakit_Tipi" in _combo_cache else [],
         "kasalar": unique_sorted(_combo_cache["Kasa_Tipi"]) if "Kasa_Tipi" in _combo_cache else [],
