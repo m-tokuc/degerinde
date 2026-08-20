@@ -398,6 +398,9 @@ def dynamic_options(req: DynamicOptionsRequest):
         "vitesler": unique_sorted(_combo_cache["Vites_Tipi"]) if "Vites_Tipi" in _combo_cache else [],
         "yakitlar": unique_sorted(_combo_cache["Yakit_Tipi"]) if "Yakit_Tipi" in _combo_cache else [],
         "kasalar": unique_sorted(_combo_cache["Kasa_Tipi"]) if "Kasa_Tipi" in _combo_cache else [],
+        "renkler": unique_sorted(_combo_cache["Renk"]) if "Renk" in _combo_cache else [],
+        "kimden": unique_sorted(_combo_cache["Kimden"]) if "Kimden" in _combo_cache else [],
+        "garanti_durumu": unique_sorted(_combo_cache["Garanti_Durumu"]) if "Garanti_Durumu" in _combo_cache else [],
     }
 
 @app.post("/api/auto_fill_specs")
