@@ -307,6 +307,41 @@ export default function Home() {
     return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(val);
   };
 
+  const handleDownloadPDF = async () => {
+    try {
+      const toastId = toast.loading('PDF hazırlanıyor...');
+      const html2canvas = (await import('html2canvas')).default;
+      const { jsPDF } = await import('jspdf');
+      
+      const element = document.getElementById('pdf-report-container');
+      if (!element) return;
+      
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#f8fafc' // slate-50
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Degerinde_Rapor_${formData.Marka}_${formData.Model}.pdf`);
+      
+      toast.success('PDF başarıyla indirildi!', { id: toastId });
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      toast.error('PDF oluşturulurken bir hata oluştu.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col">
       {/* Premium Header with Logo */}
@@ -629,6 +664,36 @@ export default function Home() {
           {!loadingPredict && result && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               
+              <div className="flex justify-end">
+                <button onClick={handleDownloadPDF} type="button" className="flex items-center gap-2 bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold py-2.5 px-5 rounded-xl transition duration-200 shadow-sm border border-blue-200">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                  PDF Olarak İndir
+                </button>
+              </div>
+
+              <div id="pdf-report-container" className="space-y-6 bg-slate-50 rounded-3xl pb-4">
+                
+                <div className="bg-white p-6 rounded-t-3xl border-b border-slate-200 flex justify-between items-center shadow-sm">
+                   <div className="flex items-center gap-2">
+                     <svg className="w-8 h-8 text-blue-600" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                       <path d="M15 70 L30 70 L40 45 L70 45 L80 70 L95 70" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
+                       <circle cx="30" cy="70" r="7" fill="white" stroke="currentColor" strokeWidth="5"/>
+                       <circle cx="80" cy="70" r="7" fill="white" stroke="currentColor" strokeWidth="5"/>
+                       <path d="M25 40 L45 20 L60 30 L85 10" stroke="#0ea5e9" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
+                       <path d="M70 10 L85 10 L85 25" stroke="#0ea5e9" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
+                     </svg>
+                     <span className="text-xl tracking-tight">
+                       <span className="font-extrabold text-blue-700">Değer</span><span className="font-medium text-slate-500">inde.</span>
+                     </span>
+                   </div>
+                   <div className="text-right">
+                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Ekspertiz ve Değerleme Raporu</p>
+                     <p className="text-sm font-bold text-slate-800">{formData.Marka} {formData.Seri} {formData.Model}</p>
+                     <p className="text-xs font-medium text-slate-500 mt-0.5">{formData.Yil} Model • {formatKm(formData.Kilometre)} km</p>
+                   </div>
+                </div>
+
+              
               {/* Outlier Warning */}
               {result.is_outlier && (
                 <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-start gap-3 text-amber-800 shadow-sm">
@@ -724,6 +789,7 @@ export default function Home() {
                   </div>
                 </div>
               </div>
+            </div>
             </div>
           )}
 
