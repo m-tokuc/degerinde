@@ -333,6 +333,11 @@ def _resolve_hasar(req: CarFeaturesRequest) -> dict:
 
     flags = parse_hasar_flags(label, tramer_tl=tramer)
     flags["Tramer_TL"] = tramer
+    # Ensure 13 part keys always exist
+    for _part in ["kaput", "tavan", "bagaj", "sol_on_camurluk", "sag_on_camurluk",
+                  "sol_arka_camurluk", "sag_arka_camurluk", "sol_on_kapi", "sag_on_kapi",
+                  "sol_arka_kapi", "sag_arka_kapi", "on_tampon", "arka_tampon"]:
+        flags.setdefault(_part, 0)
     return flags
 
 
@@ -413,10 +418,8 @@ def predict(req: CarFeaturesRequest, request: Request):
         "Silindir Sayısı": str(req.Silindir_Sayisi or "4"),
         "Koltuk Sayısı": str(req.Koltuk_Sayisi or "5"),
         "Boya_Durumu": hasar["Boya_Durumu"],
-        "Arac_Yasi": arac_yasi,
         "Yıl": req.Yil,
         "Kilometre": req.Kilometre,
-        "Yillik_Ortalama_KM": yillik_km,
         "Motor_Hacmi_cc": req.Motor_Hacmi_cc or 1600.0,
         "Motor_Gucu_hp": req.Motor_Gucu_hp or 110.0,
         "Tramer_TL": hasar["Tramer_TL"],
@@ -498,6 +501,20 @@ def predict(req: CarFeaturesRequest, request: Request):
         logger.warning(f"Tahmin loglanamadı: {e}")
 
 
+    # Gerçek model metriklerini dogrudan model_data'dan ök
+    real_r2 = model_metadata.get("r2", MODEL_R2) if model_metadata else MODEL_R2
+    real_mae = model_metadata.get("mae", MODEL_MAE) if model_metadata else MODEL_MAE
+
+    # Dinamik güven skoru: düşmesini (yüksek km, eski araç) yansıt
+    guven = 95
+    if req.Kilometre > 200_000:
+        guven -= 5
+    if req.Yil < 2005:
+        guven -= 5
+    if hasar["Has_Degisen"] or hasar["Has_Tramer"]:
+        guven -= 3
+    guven = max(75, guven)
+
     return {
         "tahmini_fiyat": fiyat,
         "fiyat_araligi": {
@@ -506,8 +523,8 @@ def predict(req: CarFeaturesRequest, request: Request):
         },
         "hasar_analizi": hasar,
         "fiyat_etkenleri": fiyat_etkenleri,
-        "guven_skoru": 94,
-        "model_r2": model_metadata.get("metrics", {}).get("r2", 0.95),
-        "mae": model_metadata.get("metrics", {}).get("mae", 60000),
-        "features_used": 22
+        "guven_skoru": guven,
+        "model_r2": round(real_r2, 4),
+        "mae": int(real_mae),
+        "features_used": 34
     }

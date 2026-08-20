@@ -18,7 +18,7 @@ source $VENV_DIR/bin/activate
 
 echo "1. Linkler toplanıyor (arabam.com)..."
 # Her gün en yeni 10 sayfa aracı çekmek yeterli (Günlük 500 ilan)
-python3 link_toplayici.py --max_pages 10
+python3 link_toplayici.py
 
 echo "2. Detaylar çekiliyor ve araba_verileri.jsonl'e ekleniyor..."
 python3 detay_cekici.py

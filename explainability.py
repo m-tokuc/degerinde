@@ -18,12 +18,10 @@ class PriceExplainer:
             self.preprocessor = self.pipeline.named_steps["preprocessor"]
             self.regressor = self.pipeline.named_steps["regressor"]
             
-            # The features after preprocessing
-            self.out_features = (
-                self.model_data.get("high_cardinality_cats", []) + 
-                self.model_data.get("low_cardinality_cats", []) + 
-                self.model_data.get("numerical_features", [])
-            )
+            # The features after preprocessing — cat first, then num (must match training order)
+            cat_feats = self.model_data.get("categorical_features", [])
+            num_feats = self.model_data.get("numerical_features", [])
+            self.out_features = cat_feats + num_feats
             
             self.explainer = shap.TreeExplainer(self.regressor)
             self.is_ready = True

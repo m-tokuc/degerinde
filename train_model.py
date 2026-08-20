@@ -162,9 +162,7 @@ tramer_reparsed = df.apply(
     ),
     axis=1,
 )
-df["Tramer_TL"] = tramer_reparsed.clip(0, 5_000_000)
-
-df["Tramer_TL"] = df["Tramer_TL"].fillna(0).clip(0, 5_000_000)
+df["Tramer_TL"] = tramer_reparsed.clip(0, 5_000_000).fillna(0)
 
 print("\n3. Nümerik kolonlar...")
 df["Fiyat"] = pd.to_numeric(df["Fiyat"], errors="coerce")
