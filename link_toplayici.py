@@ -19,7 +19,7 @@ ERROR_LOG_FILE = "scraper_errors.log"
 
 # Güvenlik Duvarı (Cloudflare) 403 Hatası Alırsanız Bu Sayıyı Düşürün (Örn: 3 veya 5)
 # Sorunsuz çalışıyorsa daha hızlı tarama için 10-15 yapabilirsiniz.
-CONCURRENCY_LIMIT = 8 
+CONCURRENCY_LIMIT = 3
 
 USER_AGENTS = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
@@ -34,7 +34,7 @@ USER_AGENTS = [
 
 CATEGORIES = ['otomobil', 'arazi-suv-pick-up', 'minivan-panelvan']
 SORT_PARAMS = ['price-asc', 'price-desc']
-YEARS = list(range(2000, 2025))
+YEARS = list(range(1990, 2026))
 
 # Massive exhaustive fallback dictionary requested
 BRANDS_MODELS = {
@@ -147,8 +147,8 @@ async def fetch_with_retry(session, url, semaphore):
             if shutdown_event.is_set():
                 return None
             try:
-                # Random human pacing (Faster minimum safe delay)
-                await asyncio.sleep(random.uniform(0.5, 1.5))
+                # Random human pacing (Daha güvenli, 2 ile 4 saniye arası)
+                await asyncio.sleep(random.uniform(2.0, 4.0))
                 
                 response = await session.get(url, headers=headers, timeout=15)
                 if response.status_code in [403, 429, 500, 502, 503, 504]:

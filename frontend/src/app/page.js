@@ -34,6 +34,7 @@ export default function Home() {
   const [loadingPredict, setLoadingPredict] = useState(false);
   const [loadingMessageIdx, setLoadingMessageIdx] = useState(0);
   const [result, setResult] = useState(null);
+  const [autoFilledFields, setAutoFilledFields] = useState({});
 
   const initialAppraisal = {
     sol_on_camurluk: 0, kaput: 0, sag_on_camurluk: 0, tavan: 0,
@@ -168,7 +169,7 @@ export default function Home() {
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = async (e) => {
     const { name, value } = e.target;
     
     const next = { ...formData, [name]: value };
@@ -180,6 +181,58 @@ export default function Home() {
       next.Model = ""; next.Yil = "";
     } else if (name === "Model") {
       next.Yil = "";
+    }
+
+    // Kullanıcı manuel değiştirirse auto-filled durumunu kaldır
+    if (autoFilledFields[name]) {
+      setAutoFilledFields(prev => ({ ...prev, [name]: false }));
+    }
+
+    // Model seçildiğinde AI auto-fill yap
+    if (name === "Model" && value && next.Marka && next.Seri) {
+      try {
+        const res = await fetch('/api/auto_fill_specs', {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            Marka: next.Marka,
+            Seri: next.Seri,
+            Model: value
+          }),
+        });
+        if (res.ok) {
+          const autoData = await res.json();
+          const newAutoFilled = { ...autoFilledFields };
+          let changed = false;
+          
+          Object.keys(autoData).forEach(key => {
+            if (autoData[key] !== null && autoData[key] !== undefined) {
+              const mappedKey = key === "Motor_Hacmi" ? "Motor_Hacmi_cc" : 
+                                key === "Motor_Gucu" ? "Motor_Gucu_hp" : key;
+              
+              if (next[mappedKey] === "" || next[mappedKey] === "Belirtilmemiş") {
+                next[mappedKey] = String(autoData[key]);
+                newAutoFilled[mappedKey] = true;
+                changed = true;
+              }
+            }
+          });
+          
+          if (changed) {
+            setAutoFilledFields(newAutoFilled);
+            toast.success("AI bazı araç özelliklerini otomatik doldurdu ✨", {
+              icon: '🤖',
+              style: {
+                borderRadius: '10px',
+                background: '#f0f9ff',
+                color: '#0369a1',
+              },
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Auto-fill error:", err);
+      }
     }
 
     setFormData(next);
@@ -361,7 +414,7 @@ export default function Home() {
               
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-5">
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">Yakıt Tipi</label>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5 flex items-center gap-1">Yakıt Tipi {autoFilledFields['Yakit_Tipi'] && <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full font-bold">✨ AI</span>}</label>
                   {loadingOptions && (!options.Yakit_Tipi || options.Yakit_Tipi.length === 0) ? (
                     <div className="w-full h-[46px] bg-slate-200 animate-pulse rounded-lg"></div>
                   ) : (
@@ -372,7 +425,7 @@ export default function Home() {
                   )}
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">Vites Tipi</label>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5 flex items-center gap-1">Vites Tipi {autoFilledFields['Vites_Tipi'] && <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full font-bold">✨ AI</span>}</label>
                   {loadingOptions && (!options.Vites_Tipi || options.Vites_Tipi.length === 0) ? (
                     <div className="w-full h-[46px] bg-slate-200 animate-pulse rounded-lg"></div>
                   ) : (
@@ -383,7 +436,7 @@ export default function Home() {
                   )}
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">Kasa Tipi</label>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5 flex items-center gap-1">Kasa Tipi {autoFilledFields['Kasa_Tipi'] && <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full font-bold">✨ AI</span>}</label>
                   {loadingOptions && (!options.Kasa_Tipi || options.Kasa_Tipi.length === 0) ? (
                     <div className="w-full h-[46px] bg-slate-200 animate-pulse rounded-lg"></div>
                   ) : (
@@ -394,8 +447,8 @@ export default function Home() {
                   )}
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">Motor Hacmi (cc)</label>
-                  {loadingOptions && (!options.Motor_Hacmi_cc || options.Motor_Hacmi_cc.length === 0) ? (
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5 flex items-center gap-1">Motor Hacmi (cc) {autoFilledFields['Motor_Hacmi_cc'] && <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full font-bold">✨ AI</span>}</label>
+                  {loadingOptions && (!options.Motor_Hacmi || options.Motor_Hacmi.length === 0) ? (
                     <div className="w-full h-[46px] bg-slate-200 animate-pulse rounded-lg"></div>
                   ) : (
                     <select name="Motor_Hacmi_cc" value={formData.Motor_Hacmi_cc} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none transition">
@@ -405,8 +458,8 @@ export default function Home() {
                   )}
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">Motor Gücü (hp)</label>
-                  {loadingOptions && (!options.Motor_Gucu_hp || options.Motor_Gucu_hp.length === 0) ? (
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5 flex items-center gap-1">Motor Gücü (hp) {autoFilledFields['Motor_Gucu_hp'] && <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full font-bold">✨ AI</span>}</label>
+                  {loadingOptions && (!options.Motor_Gucu || options.Motor_Gucu.length === 0) ? (
                     <div className="w-full h-[46px] bg-slate-200 animate-pulse rounded-lg"></div>
                   ) : (
                     <select name="Motor_Gucu_hp" value={formData.Motor_Gucu_hp} onChange={handleChange} className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-sm outline-none transition">
@@ -416,7 +469,7 @@ export default function Home() {
                   )}
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">Çekiş</label>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5 flex items-center gap-1">Çekiş {autoFilledFields['Cekis'] && <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full font-bold">✨ AI</span>}</label>
                   {loadingOptions && (!options.Cekis || options.Cekis.length === 0) ? (
                     <div className="w-full h-[46px] bg-slate-200 animate-pulse rounded-lg"></div>
                   ) : (
@@ -427,7 +480,7 @@ export default function Home() {
                   )}
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">Silindir Sayısı</label>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5 flex items-center gap-1">Silindir Sayısı {autoFilledFields['Silindir_Sayisi'] && <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full font-bold">✨ AI</span>}</label>
                   {loadingOptions && (!options.Silindir_Sayisi || options.Silindir_Sayisi.length === 0) ? (
                     <div className="w-full h-[46px] bg-slate-200 animate-pulse rounded-lg"></div>
                   ) : (
@@ -438,7 +491,7 @@ export default function Home() {
                   )}
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1.5">Koltuk Sayısı</label>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5 flex items-center gap-1">Koltuk Sayısı {autoFilledFields['Koltuk_Sayisi'] && <span className="text-[10px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full font-bold">✨ AI</span>}</label>
                   {loadingOptions && (!options.Koltuk_Sayisi || options.Koltuk_Sayisi.length === 0) ? (
                     <div className="w-full h-[46px] bg-slate-200 animate-pulse rounded-lg"></div>
                   ) : (

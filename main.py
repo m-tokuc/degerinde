@@ -150,6 +150,11 @@ class DynamicOptionsRequest(BaseModel):
     Yil: Optional[int] = None
     Vites_Tipi: Optional[str] = None
     Yakit_Tipi: Optional[str] = None
+
+class AutoFillSpecsRequest(BaseModel):
+    Marka: str
+    Seri: str
+    Model: str
     Kasa_Tipi: Optional[str] = None
 
 
@@ -395,6 +400,30 @@ def dynamic_options(req: DynamicOptionsRequest):
         "kasalar": unique_sorted(df["Kasa_Tipi"]) if "Kasa_Tipi" in df else [],
     }
 
+@app.post("/api/auto_fill_specs")
+def auto_fill_specs(req: AutoFillSpecsRequest):
+    if _combo_cache is None or len(_combo_cache) == 0:
+        return {}
+
+    df = _combo_cache[
+        (_combo_cache["Marka"] == req.Marka) & 
+        (_combo_cache["Seri"] == req.Seri) & 
+        (_combo_cache["Model"] == req.Model)
+    ]
+    
+    if df.empty:
+        return {}
+        
+    res = {}
+    # Sadece Belirtilmemiş olmayan geçerli değerlerin modunu (en çok tekrar edeni) al
+    for col in ["Motor_Hacmi", "Motor_Gucu", "Yakit_Tipi", "Vites_Tipi", "Kasa_Tipi", "Silindir_Sayisi", "Koltuk_Sayisi", "Cekis"]:
+        if col in df.columns:
+            valid = df[col].replace("Belirtilmemiş", pd.NA).dropna()
+            if not valid.empty:
+                res[col] = valid.mode().iloc[0]
+                
+    return res
+
 @app.post("/api/predict")
 def predict(req: CarFeaturesRequest, request: Request):
     if not is_model_loaded or model is None:
@@ -403,6 +432,40 @@ def predict(req: CarFeaturesRequest, request: Request):
     hasar = _resolve_hasar(req)
     arac_yasi = max(0, 2026 - req.Yil)
     yillik_km = req.Kilometre / max(1, arac_yasi)
+
+    # Aşama 2: Yapay Zeka Boşluk Doldurma (Imputation via Mode)
+    motor_hacmi = req.Motor_Hacmi_cc
+    motor_gucu = req.Motor_Gucu_hp
+    
+    if (motor_hacmi is None or motor_hacmi == 0) or (motor_gucu is None or motor_gucu == 0):
+        if _combo_cache is not None and not _combo_cache.empty:
+            df_fallback = _combo_cache[
+                (_combo_cache["Marka"] == req.Marka) & 
+                (_combo_cache["Seri"] == req.Seri)
+            ]
+            if not df_fallback.empty:
+                if (motor_hacmi is None or motor_hacmi == 0) and "Motor_Hacmi" in df_fallback.columns:
+                    valid_h = df_fallback["Motor_Hacmi"].replace("Belirtilmemiş", pd.NA).dropna()
+                    if not valid_h.empty:
+                        # "1461 cc" gibi string'den float çıkarma
+                        h_mode = valid_h.mode().iloc[0]
+                        import re
+                        m = re.search(r"(\d+(?:\.\d+)?)", str(h_mode))
+                        if m:
+                            motor_hacmi = float(m.group(1))
+                            
+                if (motor_gucu is None or motor_gucu == 0) and "Motor_Gucu" in df_fallback.columns:
+                    valid_g = df_fallback["Motor_Gucu"].replace("Belirtilmemiş", pd.NA).dropna()
+                    if not valid_g.empty:
+                        g_mode = valid_g.mode().iloc[0]
+                        import re
+                        m = re.search(r"(\d+(?:\.\d+)?)", str(g_mode))
+                        if m:
+                            motor_gucu = float(m.group(1))
+
+    # Hala null ise fallback (eski uydurma 1600 yerine en azından 1300 mantıklı bir araç)
+    if motor_hacmi is None or motor_hacmi == 0: motor_hacmi = 1300.0
+    if motor_gucu is None or motor_gucu == 0: motor_gucu = 90.0
 
     input_data = {
         "Marka": req.Marka,
@@ -420,8 +483,8 @@ def predict(req: CarFeaturesRequest, request: Request):
         "Boya_Durumu": hasar["Boya_Durumu"],
         "Yıl": req.Yil,
         "Kilometre": req.Kilometre,
-        "Motor_Hacmi_cc": req.Motor_Hacmi_cc or 1600.0,
-        "Motor_Gucu_hp": req.Motor_Gucu_hp or 110.0,
+        "Motor_Hacmi_cc": motor_hacmi,
+        "Motor_Gucu_hp": motor_gucu,
         "Tramer_TL": hasar["Tramer_TL"],
         "Has_Boya": hasar["Has_Boya"],
         "Has_Degisen": hasar["Has_Degisen"],
