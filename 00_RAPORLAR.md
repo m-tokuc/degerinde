@@ -39,3 +39,13 @@ Yarın model ve arayüz tarafında 13 parçalı ekspertiz (boya/değişen) durum
 Bugün ağırlıklı olarak backend ve arayüz entegrasyonundaki kritik hataları çözmeye odaklandım. Frontend tarafında 13 parçalı ekspertiz (boya/değişen) seçim ekranını sisteme bağladım, mobil görünümlerdeki grid kaymalarını düzelttim ve olası API kopmalarında sayfanın çökmesini engellemek için arayüze hata bildirim (toast) mekanizması ekledim. Tek kalan seçeneklerin otomatik seçilmesi özelliğindeki boş veri gönderme sorununu da hallettim. Backend tarafında ise yapay zeka modelinin tahmin sırasında Türkçe karakterli sütun isimleri yüzünden patlamasına sebep olan uyuşmazlığı giderdim. Ayrıca veritabanına fiyat tahmini loglanırken oluşan session hatasını çözdüm. Docker-compose tarafındaki inatçı güncelleme sorunlarından kurtulmak için sistemi sıfırdan temizleyip yeniden ayağa kaldırdım. Şu an arayüz ile yapay zeka modeli tam entegre, sorunsuz ve hızlı bir şekilde çalışıyor.
 
 Sıradaki hedefim arka planda her gece çalışıp yeni ilanları toplayacak bir scraper (cron) yazmak ve yapay zekanın "Bu fiyatı neden verdiğini" açıklayabilmesi için (km düşük +15k, kaput değişen -30k gibi) SHAP entegrasyonunu sağlamak olacak. Modelin sunucuyu kapatmadan güncellenebilmesi (zero-downtime) için de bir endpoint eklemeyi planlıyorum.
+
+---
+
+## 📅 20 Ağustos Raporu
+
+Bugün projede kurumsal tarafa (B2B) yönelik çok güzel güncellemeler yaptım. Öncelikle formu kullanıcıyı yormayacak şekilde inanılmaz sadeleştirdim; ekrandaki Motor Hacmi, Motor Gücü, Silindir Sayısı, Çekiş ve Kasa Tipi gibi karmaşık özellikleri tamamen kaldırdım. Bunun yerine arka planda kullanıcının seçtiği Marka/Seri/Model bilgisine göre bu verileri veritabanından çekip yapay zeka modeline sessizce gönderen bir sistem kurdum.
+
+En büyük yenilik ise PDF raporu özelliği oldu. Galerici veya ekspertiz müşterileri için sonucu şık bir "Antetli Kağıt" gibi A4 formatında bilgisayara indiren bir buton ekledim. İlk başta PDF'i çizerken `html2canvas` kütüphanesi yeni nesil Tailwind renklerinde (oklch/lab) patladı ama onu çok daha modern bir SVG motoru olan `html-to-image` ile değiştirerek çözdüm. 
+
+Bu güncellemeleri yaparken arayüzde bazı seçeneklerin (Renk, Kimden vs.) kaybolması ve canlıya çıkarken FastAPI sunucusunun koca modeli ve 140 bin satır veriyi RAM'e yüklemesi uzun sürdüğü için Nginx'in "502 Bad Gateway" atması gibi birkaç kriz yaşadım ama kodlara girip onları da düzelttim. Ayrıca veri temizliği yapıp veritabanında aynı markanın farklı yazımlarını (Citroen ve Citroën) tek isim altında birleştirdim. Şu an PDF çıktısı veren, sade ama arka planda tam güç çalışan harika bir ürün ortaya çıktı. Tüm bu emeğin sonucunu canlı olarak https://degerinde.duckdns.org/ adresinden inceleyebilirsiniz.
