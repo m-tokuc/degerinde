@@ -76,7 +76,10 @@ class PriceExplainer:
                     grouped_impacts["age_impact"] += val
                 elif feature_name in ["Vites_Tipi", "Yakit_Tipi", "Motor_Hacmi_cc", "Motor_Gucu_hp", "Silindir_Sayisi"]:
                     grouped_impacts["gear_engine_impact"] += val
-                elif feature_name in ["Tramer_TL", "Has_Boya", "Has_Degisen", "Has_Tramer", "Boya_Durumu"]:
+                elif feature_name in ["Tramer_TL", "Has_Boya", "Has_Degisen", "Has_Tramer", "Boya_Durumu",
+                                      "kaput", "tavan", "bagaj", "sol_on_camurluk", "sag_on_camurluk", 
+                                      "sol_arka_camurluk", "sag_arka_camurluk", "sol_on_kapi", "sag_on_kapi", 
+                                      "sol_arka_kapi", "sag_arka_kapi", "on_tampon", "arka_tampon"]:
                     grouped_impacts["damage_impact"] += val
                 else:
                     grouped_impacts["other_impact"] += val

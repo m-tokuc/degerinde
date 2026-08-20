@@ -234,11 +234,11 @@ def _resolve_hasar(req: CarFeaturesRequest) -> dict:
             has_tramer = 1 if tramer > 0 else 0
 
             if has_boya and has_degisen:
-                status = f"{degisen_sayisi} Değişen, {boyali_sayisi} Boyalı"
+                status = "Boyalı+Değişen"
             elif has_degisen:
-                status = f"{degisen_sayisi} Değişenli"
+                status = "Değişenli"
             else:
-                status = f"{boyali_sayisi} Parça Boyalı"
+                status = "Boyalı"
 
             return {
                 "Boya_Durumu": status,
@@ -246,16 +246,42 @@ def _resolve_hasar(req: CarFeaturesRequest) -> dict:
                 "Has_Degisen": has_degisen,
                 "Has_Tramer": has_tramer,
                 "Tramer_TL": tramer,
+                "kaput": req.kaput,
+                "tavan": req.tavan,
+                "bagaj": req.bagaj,
+                "sol_on_camurluk": req.sol_on_camurluk,
+                "sag_on_camurluk": req.sag_on_camurluk,
+                "sol_arka_camurluk": req.sol_arka_camurluk,
+                "sag_arka_camurluk": req.sag_arka_camurluk,
+                "sol_on_kapi": req.sol_on_kapi,
+                "sag_on_kapi": req.sag_on_kapi,
+                "sol_arka_kapi": req.sol_arka_kapi,
+                "sag_arka_kapi": req.sag_arka_kapi,
+                "on_tampon": req.on_tampon,
+                "arka_tampon": req.arka_tampon,
             }
         else:
             # All provided parts are Orijinal
             has_tramer = 1 if tramer > 0 else 0
             return {
-                "Boya_Durumu": "Tramerli" if has_tramer else "Temiz",
+                "Boya_Durumu": "Tramerli" if has_tramer else "Belirsiz",
                 "Has_Boya": 0,
                 "Has_Degisen": 0,
                 "Has_Tramer": has_tramer,
                 "Tramer_TL": tramer,
+                "kaput": req.kaput,
+                "tavan": req.tavan,
+                "bagaj": req.bagaj,
+                "sol_on_camurluk": req.sol_on_camurluk,
+                "sag_on_camurluk": req.sag_on_camurluk,
+                "sol_arka_camurluk": req.sol_arka_camurluk,
+                "sag_arka_camurluk": req.sag_arka_camurluk,
+                "sol_on_kapi": req.sol_on_kapi,
+                "sag_on_kapi": req.sag_on_kapi,
+                "sol_arka_kapi": req.sol_arka_kapi,
+                "sag_arka_kapi": req.sag_arka_kapi,
+                "on_tampon": req.on_tampon,
+                "arka_tampon": req.arka_tampon,
             }
 
     if req.Has_Boya is not None or req.Has_Degisen is not None or req.Has_Tramer is not None:
@@ -278,6 +304,12 @@ def _resolve_hasar(req: CarFeaturesRequest) -> dict:
             "Has_Degisen": has_degisen,
             "Has_Tramer": has_tramer,
             "Tramer_TL": tramer,
+            "kaput": 0, "tavan": 0, "bagaj": 0, 
+            "sol_on_camurluk": 0, "sag_on_camurluk": 0,
+            "sol_arka_camurluk": 0, "sag_arka_camurluk": 0,
+            "sol_on_kapi": 0, "sag_on_kapi": 0,
+            "sol_arka_kapi": 0, "sag_arka_kapi": 0,
+            "on_tampon": 0, "arka_tampon": 0,
         }
 
     label = (req.Boya_Degisen or "Belirsiz").strip()

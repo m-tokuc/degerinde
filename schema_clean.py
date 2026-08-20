@@ -16,6 +16,7 @@ from typing import Any, Iterable, Mapping, Optional
 import pandas as pd
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
+from nlp_parser import parse_13_parts, PARTS_MAPPING
 
 # ─── Whitelist (canonical column names in araclar_clean) ───
 CLEAN_COLUMNS: list[str] = [
@@ -49,6 +50,19 @@ CLEAN_COLUMNS: list[str] = [
     "Has_Boya",
     "Has_Degisen",
     "Has_Tramer",
+    "kaput",
+    "tavan",
+    "bagaj",
+    "sol_on_camurluk",
+    "sag_on_camurluk",
+    "sol_arka_camurluk",
+    "sag_arka_camurluk",
+    "sol_on_kapi",
+    "sag_on_kapi",
+    "sol_arka_kapi",
+    "sag_arka_kapi",
+    "on_tampon",
+    "arka_tampon",
     "scraped_at",
     "source",
 ]
@@ -82,6 +96,7 @@ _RAW_ALIASES: dict[str, tuple[str, ...]] = {
     "Lokal_Boya": ("Lokal Boyalı Parçalar", "Lokal_Boya"),
     "scraped_at": ("scraped_at", "Scraped_At", "created_at"),
     "source": ("source", "Source"),
+    "Aciklama": ("Aciklama", "Açıklama", "Satici_Aciklamasi")
 }
 
 KNOWN_BRANDS = sorted(
@@ -463,6 +478,19 @@ def normalize_raw_listing(raw: Mapping[str, Any], source: str = "import") -> Opt
         }
     else:
         flags = parse_hasar_flags(boya_raw, boyanan, lokal, tramer_tl, tramer_raw)
+        
+    def _str(v: Any) -> Optional[str]:
+        if v is None or (isinstance(v, float) and pd.isna(v)):
+            return None
+        t = str(v).strip()
+        return t if t else None
+
+    aciklama_raw = _pick(raw, "Aciklama")
+    baslik_raw = _str(baslik)
+    
+    # Combine title and description for best NLP results
+    nlp_text = f"{baslik_raw} {aciklama_raw}" if aciklama_raw else (baslik_raw or "")
+    parts_13 = parse_13_parts(nlp_text)
 
     scraped = _pick(raw, "scraped_at")
     if scraped is None:
@@ -471,12 +499,6 @@ def normalize_raw_listing(raw: Mapping[str, Any], source: str = "import") -> Opt
         scraped = str(scraped)
 
     src = _pick(raw, "source") or source
-
-    def _str(v: Any) -> Optional[str]:
-        if v is None or (isinstance(v, float) and pd.isna(v)):
-            return None
-        t = str(v).strip()
-        return t if t else None
 
     return {
         "ilan_url": url_s,
@@ -509,6 +531,19 @@ def normalize_raw_listing(raw: Mapping[str, Any], source: str = "import") -> Opt
         "Has_Boya": int(flags["Has_Boya"]),
         "Has_Degisen": int(flags["Has_Degisen"]),
         "Has_Tramer": int(flags["Has_Tramer"]),
+        "kaput": parts_13.get("kaput", 0),
+        "tavan": parts_13.get("tavan", 0),
+        "bagaj": parts_13.get("bagaj", 0),
+        "sol_on_camurluk": parts_13.get("sol_on_camurluk", 0),
+        "sag_on_camurluk": parts_13.get("sag_on_camurluk", 0),
+        "sol_arka_camurluk": parts_13.get("sol_arka_camurluk", 0),
+        "sag_arka_camurluk": parts_13.get("sag_arka_camurluk", 0),
+        "sol_on_kapi": parts_13.get("sol_on_kapi", 0),
+        "sag_on_kapi": parts_13.get("sag_on_kapi", 0),
+        "sol_arka_kapi": parts_13.get("sol_arka_kapi", 0),
+        "sag_arka_kapi": parts_13.get("sag_arka_kapi", 0),
+        "on_tampon": parts_13.get("on_tampon", 0),
+        "arka_tampon": parts_13.get("arka_tampon", 0),
         "scraped_at": scraped,
         "source": str(src)[:80],
     }
@@ -558,6 +593,19 @@ def ensure_clean_table(engine: Optional[Engine] = None) -> Engine:
         "Has_Boya" SMALLINT DEFAULT 0,
         "Has_Degisen" SMALLINT DEFAULT 0,
         "Has_Tramer" SMALLINT DEFAULT 0,
+        kaput SMALLINT DEFAULT 0,
+        tavan SMALLINT DEFAULT 0,
+        bagaj SMALLINT DEFAULT 0,
+        sol_on_camurluk SMALLINT DEFAULT 0,
+        sag_on_camurluk SMALLINT DEFAULT 0,
+        sol_arka_camurluk SMALLINT DEFAULT 0,
+        sag_arka_camurluk SMALLINT DEFAULT 0,
+        sol_on_kapi SMALLINT DEFAULT 0,
+        sag_on_kapi SMALLINT DEFAULT 0,
+        sol_arka_kapi SMALLINT DEFAULT 0,
+        sag_arka_kapi SMALLINT DEFAULT 0,
+        on_tampon SMALLINT DEFAULT 0,
+        arka_tampon SMALLINT DEFAULT 0,
         scraped_at TIMESTAMPTZ,
         source TEXT,
         created_at TIMESTAMPTZ DEFAULT NOW()

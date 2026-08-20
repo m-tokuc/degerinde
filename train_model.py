@@ -49,7 +49,7 @@ CATEGORICAL_FEATURES = [
     "Garanti Durumu",
     "Silindir Sayısı",
     "Koltuk Sayısı",
-    "Boya_Durumu",
+    "Boya_Durumu"
 ]
 
 NUMERICAL_FEATURES = [
@@ -61,19 +61,43 @@ NUMERICAL_FEATURES = [
     "Has_Boya",
     "Has_Degisen",
     "Has_Tramer",
+    "kaput",
+    "tavan",
+    "bagaj",
+    "sol_on_camurluk",
+    "sag_on_camurluk",
+    "sol_arka_camurluk",
+    "sag_arka_camurluk",
+    "sol_on_kapi",
+    "sag_on_kapi",
+    "sol_arka_kapi",
+    "sag_arka_kapi",
+    "on_tampon",
+    "arka_tampon"
 ]
 
-# XGB monotone: + year, − km / tramer / damage flags (aligned to cat+num order after CT)
-# Cats → 0; then nums in NUMERICAL_FEATURES order
 MONOTONE_NUM = {
     "Yıl": 1,
     "Kilometre": -1,
-    "Motor_Hacmi_cc": 0,
-    "Motor_Gucu_hp": 0,
+    "Motor_Hacmi_cc": 1,
+    "Motor_Gucu_hp": 1,
     "Tramer_TL": -1,
     "Has_Boya": -1,
     "Has_Degisen": -1,
     "Has_Tramer": -1,
+    "kaput": -1,
+    "tavan": -1,
+    "bagaj": -1,
+    "sol_on_camurluk": -1,
+    "sag_on_camurluk": -1,
+    "sol_arka_camurluk": -1,
+    "sag_arka_camurluk": -1,
+    "sol_on_kapi": -1,
+    "sag_on_kapi": -1,
+    "sol_arka_kapi": -1,
+    "sag_arka_kapi": -1,
+    "on_tampon": -1,
+    "arka_tampon": -1
 }
 
 
@@ -140,49 +164,7 @@ tramer_reparsed = df.apply(
 )
 df["Tramer_TL"] = tramer_reparsed.clip(0, 5_000_000)
 
-need_reparse = (
-    df.get("Boya_Durumu").isna()
-    if "Boya_Durumu" in df.columns
-    else pd.Series(True, index=df.index)
-)
-if "Boya_Durumu" in df.columns:
-    need_reparse = need_reparse | df["Boya_Durumu"].astype(str).isin(
-        ["", "nan", "None", "Belirsiz"]
-    )
-    # Also reparse rows that only have junk stored
-    need_reparse = need_reparse | (
-        (df.get("Has_Boya", 0).fillna(0) == 0)
-        & (df.get("Has_Degisen", 0).fillna(0) == 0)
-        & df["Boya_Raw"].fillna("").astype(str).str.len().gt(0)
-    )
-
-for idx in df.index[need_reparse.fillna(True)]:
-    flags = parse_hasar_flags(
-        df.at[idx, "Boya_Raw"] if "Boya_Raw" in df.columns else None,
-        df.at[idx, "Boyanan_Parcalar"] if "Boyanan_Parcalar" in df.columns else None,
-        df.at[idx, "Lokal_Boya"] if "Lokal_Boya" in df.columns else None,
-        float(df.at[idx, "Tramer_TL"] or 0),
-        df.at[idx, "Tramer_Tutari_Raw"] if "Tramer_Tutari_Raw" in df.columns else None,
-    )
-    df.at[idx, "Boya_Durumu"] = flags["Boya_Durumu"]
-    df.at[idx, "Has_Boya"] = flags["Has_Boya"]
-    df.at[idx, "Has_Degisen"] = flags["Has_Degisen"]
-    df.at[idx, "Has_Tramer"] = flags["Has_Tramer"]
-
-# Tramer_TL > 0 forces Has_Tramer
-df.loc[df["Tramer_TL"] > 0, "Has_Tramer"] = 1
-
-print("   Boya_Durumu:", df["Boya_Durumu"].value_counts(dropna=False).to_dict())
-print(
-    "   Has flags mean:",
-    {
-        "Has_Boya": float(df["Has_Boya"].mean()),
-        "Has_Degisen": float(df["Has_Degisen"].mean()),
-        "Has_Tramer": float(df["Has_Tramer"].mean()),
-        "Tramer>0": float((df["Tramer_TL"] > 0).mean()),
-    },
-)
-print(f"   Markalar: {df['Marka'].value_counts().head(12).to_dict()}")
+df["Tramer_TL"] = df["Tramer_TL"].fillna(0).clip(0, 5_000_000)
 
 print("\n3. Nümerik kolonlar...")
 df["Fiyat"] = pd.to_numeric(df["Fiyat"], errors="coerce")
@@ -190,9 +172,22 @@ df["Kilometre"] = pd.to_numeric(df["Kilometre"], errors="coerce")
 df["Yıl"] = pd.to_numeric(df["Yıl"], errors="coerce")
 df["Motor_Hacmi_cc"] = df["Motor Hacmi"].apply(parse_numeric_first).clip(0, 8000)
 df["Motor_Gucu_hp"] = df["Motor Gücü"].apply(parse_numeric_first).clip(0, 1000)
+
 df["Has_Boya"] = pd.to_numeric(df["Has_Boya"], errors="coerce").fillna(0).clip(0, 1)
 df["Has_Degisen"] = pd.to_numeric(df["Has_Degisen"], errors="coerce").fillna(0).clip(0, 1)
 df["Has_Tramer"] = pd.to_numeric(df["Has_Tramer"], errors="coerce").fillna(0).clip(0, 1)
+
+# 13-parts cleanup
+parts_cols = [
+    "kaput", "tavan", "bagaj", "sol_on_camurluk", "sag_on_camurluk", 
+    "sol_arka_camurluk", "sag_arka_camurluk", "sol_on_kapi", "sag_on_kapi", 
+    "sol_arka_kapi", "sag_arka_kapi", "on_tampon", "arka_tampon"
+]
+for p in parts_cols:
+    if p not in df.columns:
+        df[p] = 0
+    df[p] = pd.to_numeric(df[p], errors="coerce").fillna(0).clip(0, 3)
+
 
 df["Silindir Sayısı"] = (
     df["Silindir Sayısı"]
