@@ -111,14 +111,14 @@ export default function Home() {
           Vites_Tipi: data.Vites_Tipi || data.vitesler || [],
           Yakit_Tipi: data.Yakit_Tipi || data.yakitlar || [],
           Kasa_Tipi: data.Kasa_Tipi || data.kasalar || [],
-          Renk: data.Renk || [],
+          Renk: data.Renk || data.renkler || [],
           Cekis: data.Cekis || [],
           Motor_Hacmi: data.Motor_Hacmi || [],
           Motor_Gucu: data.Motor_Gucu || [],
-          Garanti_Durumu: data.Garanti_Durumu || [],
+          Garanti_Durumu: data.Garanti_Durumu || data.garanti_durumu || [],
           Silindir_Sayisi: data.Silindir_Sayisi || [],
           Koltuk_Sayisi: data.Koltuk_Sayisi || [],
-          Kimden: data.Kimden || [],
+          Kimden: data.Kimden || data.kimden || [],
           Boya_Degisen: data.Boya_Degisen || [],
         };
         setOptions(normalizedOptions);

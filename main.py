@@ -130,6 +130,8 @@ def load_data_cache():
     # Always ensure 'Yil' column exists (not 'Yıl')
     if _combo_cache is not None and "Yıl" in _combo_cache.columns and "Yil" not in _combo_cache.columns:
         _combo_cache = _combo_cache.rename(columns={"Yıl": "Yil"})
+    if _combo_cache is not None and "Marka" in _combo_cache.columns:
+        _combo_cache["Marka"] = _combo_cache["Marka"].replace({"Citroen": "Citroën"})
 
 @app.on_event("startup")
 def startup_event():
