@@ -12,16 +12,18 @@ import re
 
 # --- CONFIGURATION ---
 USER_AGENTS = [
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0",
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/114.0"
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:122.0) Gecko/20100101 Firefox/122.0",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_2_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1",
+    "Mozilla/5.0 (Android 14; Mobile; rv:122.0) Gecko/122.0 Firefox/122.0"
 ]
-INPUT_FILE = "cleaned_links.txt"
+INPUT_FILE = sys.argv[1] if len(sys.argv) > 1 else "cleaned_links.txt"
 OUTPUT_FILE = "araba_verileri.jsonl"
 CHECKPOINT_FILE = "islenen_linkler.txt"
-CONCURRENCY_LIMIT = 5  # Anti-Ban / Rate-Limit Safe Limit
+CONCURRENCY_LIMIT = 2  # Max 1.5 - 2 istek / saniye
 MAX_RETRIES = 5
 
 # --- LOGGING SETUP ---
@@ -35,12 +37,13 @@ logger.addHandler(console_handler)
 def load_processed_links():
     """Load already processed links to avoid duplicate work and enable resuming."""
     processed = set()
-    if os.path.exists(CHECKPOINT_FILE):
-        with open(CHECKPOINT_FILE, 'r', encoding='utf-8') as f:
-            for line in f:
-                url = line.strip()
-                if url:
-                    processed.add(url)
+    for fname in [CHECKPOINT_FILE, "known_links.txt"]:
+        if os.path.exists(fname):
+            with open(fname, 'r', encoding='utf-8') as f:
+                for line in f:
+                    url = line.strip()
+                    if url:
+                        processed.add(url)
     logger.info(f"🔄 Checkpoint yüklendi: {len(processed):,} link zaten işlenmiş.")
     return processed
 
@@ -150,15 +153,15 @@ async def fetch_and_process(url, session, semaphore, output_lock, processed_lock
     async with semaphore:
         for attempt in range(1, MAX_RETRIES + 1):
             try:
-                # Anti-Ban Pacing
-                await asyncio.sleep(random.uniform(2, 5))
+                # Anti-Ban Pacing - Mobil İnternet Turbo Mod
+                await asyncio.sleep(random.uniform(1.5, 2.5))
                 
                 headers = {"User-Agent": random.choice(USER_AGENTS)}
                 response = await session.get(url, headers=headers, timeout=15)
                 
                 if response.status_code == 429:
-                    logger.warning(f"⚠️ Rate Limit (HTTP 429) algılandı. {attempt * 10} sn bekleniyor... ({url})")
-                    await asyncio.sleep(10 * attempt)
+                    logger.warning(f"⚠️ Rate Limit (HTTP 429) algılandı. {attempt * 3} sn bekleniyor... ({url})")
+                    await asyncio.sleep(3 * attempt)
                     continue
                 elif response.status_code in [403, 500, 502, 503, 504]:
                     logger.warning(f"HTTP {response.status_code} on {url} (Deneme {attempt}/{MAX_RETRIES})")
@@ -223,7 +226,7 @@ async def main():
 
     logger.info("👻 Hayalet Motor (Ghost Engine) Ultimate Ver. Başlatılıyor...")
     
-    async with AsyncSession(impersonate="chrome110") as session:
+    async with AsyncSession(impersonate="chrome120") as session:
         for url in urls_to_process:
             tasks.append(
                 asyncio.create_task(
