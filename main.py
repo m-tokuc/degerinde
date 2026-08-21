@@ -128,18 +128,16 @@ def load_data_cache():
             _combo_cache = pd.read_sql(query, conn)
             logger.info(f"CRITICAL: Usable (Marka+Seri): {len(_combo_cache)}")
     except Exception as e:
-        logger.warning(f"Veritabanı hatası: {e}. JSONL yedeğine geçiliyor...")
-        if os.path.exists("araba_verileri.jsonl"):
+        logger.warning(f"Veritabanı hatası: {e}. Yedeğe geçiliyor...")
+        if os.path.exists("dropdown_cache.csv"):
+            _combo_cache = pd.read_csv("dropdown_cache.csv")
+            logger.info(f"dropdown_cache.csv hizlica yüklendi. {len(_combo_cache)} kayıt.")
+        elif os.path.exists("araba_verileri.jsonl"):
             _combo_cache = pd.read_json("araba_verileri.jsonl", lines=True)
             rename_map = {
-                "Yıl": "Yil",
-                "Vites Tipi": "Vites_Tipi",
-                "Yakıt Tipi": "Yakit_Tipi",
-                "Kasa Tipi": "Kasa_Tipi",
-                "Motor Hacmi": "Motor_Hacmi",
-                "Motor Gücü": "Motor_Gucu",
-                "Garanti Durumu": "Garanti_Durumu",
-                "Çekiş": "Cekis"
+                "Yıl": "Yil", "Vites Tipi": "Vites_Tipi", "Yakıt Tipi": "Yakit_Tipi",
+                "Kasa Tipi": "Kasa_Tipi", "Motor Hacmi": "Motor_Hacmi", "Motor Gücü": "Motor_Gucu",
+                "Garanti Durumu": "Garanti_Durumu", "Çekiş": "Cekis"
             }
             _combo_cache = _combo_cache.rename(columns=rename_map)
             logger.info(f"araba_verileri.jsonl hizlica yüklendi. {len(_combo_cache)} kayıt.")

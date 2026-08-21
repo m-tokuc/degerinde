@@ -66,3 +66,4 @@ dev_veriseti.jsonl
 
 # Backup frontend
 frontend_flutter/
+!dropdown_cache.csv
