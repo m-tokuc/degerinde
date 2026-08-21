@@ -19,7 +19,7 @@ ERROR_LOG_FILE = "scraper_errors.log"
 
 # Güvenlik Duvarı (Cloudflare) 403 Hatası Alırsanız Bu Sayıyı Düşürün (Örn: 3 veya 5)
 # Sorunsuz çalışıyorsa daha hızlı tarama için 10-15 yapabilirsiniz.
-CONCURRENCY_LIMIT = 2
+CONCURRENCY_LIMIT = 3
 
 USER_AGENTS = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
@@ -31,6 +31,14 @@ USER_AGENTS = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36',
     'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/112.0'
 ]
+
+# Load known links to avoid scraping cars we already have in the database
+KNOWN_LINKS = set()
+if os.path.exists('known_links.txt'):
+    with open('known_links.txt', 'r', encoding='utf-8') as f:
+        for line in f:
+            KNOWN_LINKS.add(line.strip())
+print(f"Loaded {len(KNOWN_LINKS)} known links to skip.")
 
 CATEGORIES = ['otomobil', 'arazi-suv-pick-up', 'minivan-panelvan']
 SORT_PARAMS = ['price-asc', 'price-desc']
@@ -138,17 +146,16 @@ async def write_links_to_file(links, lock):
                 await f.write(f"{link}\n")
 
 async def fetch_with_retry(session, url, semaphore):
-    """Fetch URL safely with semaphore concurrency limit, random delays and retries."""
+    """Fetches a URL with retries, graceful backoff, and 403 handling."""
     headers = {'User-Agent': random.choice(USER_AGENTS)}
-    
-    # Bulletproof Anti-Ban: limit concurrent requests
     async with semaphore:
         for attempt in range(1, 4):
             if shutdown_event.is_set():
-                return None
+                break
+                
             try:
-                # Random human pacing (Daha güvenli, 3 ile 6 saniye arası)
-                await asyncio.sleep(random.uniform(3.0, 6.0))
+                # Add a human-like delay
+                await asyncio.sleep(random.uniform(1.0, 2.5))
                 
                 response = await session.get(url, headers=headers, timeout=15)
                 if response.status_code in [403, 429, 500, 502, 503, 504]:
@@ -188,7 +195,8 @@ def extract_links(html):
         
         # Strict listing URL filter: must contain /ilan/ and end with numeric listing ID (digits)
         if '/ilan/' in clean_url and clean_url.split('/')[-1].isdigit():
-            unique_links.add(clean_url)
+            if clean_url not in KNOWN_LINKS:
+                unique_links.add(clean_url)
             
     return list(unique_links)
 
@@ -207,54 +215,60 @@ async def find_correct_category(session, brand, model, semaphore):
     logger.info(f"-> Hata: {brand} {model} için uygun kategori bulunamadı, atlanıyor.")
     return None
 
-async def scrape_year_sort_task(session, brand, model, category, year, sort_param, semaphore, file_lock, seen_urls, seen_lock):
-    """Task: Scrapes pages 1 to 50 for a specific Year & Sort combination sequentially."""
-    for page in range(1, 51):
+async def scrape_pages_task(session, base_url, max_pages, brand, model, semaphore, file_lock, seen_urls, seen_lock):
+    """Scrapes up to max_pages from a given base URL. Returns the number of pages successfully scraped."""
+    pages_scraped = 0
+    for page in range(1, max_pages + 1):
         if shutdown_event.is_set():
             break
             
-        url = f"{BASE_URL}/ikinci-el/{category}/{brand}-{model}?minYear={year}&maxYear={year}&sort={sort_param}&page={page}"
+        url = f"{base_url}&page={page}" if "?" in base_url else f"{base_url}?page={page}"
         html = await fetch_with_retry(session, url, semaphore)
         
         if not html:
-            break # Network failure after retries
+            break
             
         page_links = extract_links(html)
         if not page_links:
-            # Empty page or no valid listing URLs -> Break pagination immediately
             break
             
-        # Deduplicate against global seen_urls
         async with seen_lock:
             new_links = [l for l in page_links if l not in seen_urls]
             for l in new_links:
                 seen_urls.add(l)
                 
         if not new_links:
-            # Page returned no new links (meaning page repetition or end of pagination)
             break
             
-        # O(1) Memory writing for new unique links
         await write_links_to_file(new_links, file_lock)
-        logger.info(f"[{brand.upper()} {model.upper()} | {year} | {sort_param}] Sayfa {page} taranıyor... Eklenen Yeni Link: {len(new_links)}")
+        logger.info(f"[{brand.upper()} {model.upper()}] Sayfa {page} taranıyor... Eklenen Yeni Link: {len(new_links)}")
+        pages_scraped += 1
+        
+    return pages_scraped
 
 async def process_model(session, brand, model, semaphore, file_lock, seen_urls, seen_lock):
-    """Processes an entire model by fanning out Tasks for Years & Sorts."""
+    """Processes an entire model. Only falls back to year-splitting if it hits the 50-page limit."""
     category = await find_correct_category(session, brand, model, semaphore)
     if not category:
         return
         
-    tasks = []
-    for year in YEARS:
-        for sort_param in SORT_PARAMS:
-            # Create a background task for each year and sort
-            task = asyncio.create_task(
-                scrape_year_sort_task(session, brand, model, category, year, sort_param, semaphore, file_lock, seen_urls, seen_lock)
-            )
-            tasks.append(task)
+    base_model_url = f"{BASE_URL}/ikinci-el/{category}/{brand}-{model}"
     
-    # Wait for all tasks (all years, all pages) of this model to finish
-    await asyncio.gather(*tasks)
+    # First, try to scrape without year filtering.
+    # If it hits 50 pages, it means we missed some cars (max 1000 cars limit).
+    pages_scraped = await scrape_pages_task(session, base_model_url, 50, brand, model, semaphore, file_lock, seen_urls, seen_lock)
+    
+    if pages_scraped == 50:
+        logger.warning(f"🚨 {brand} {model} 50 sayfa sınırına takıldı (>1000 araç)! Yıllara bölünerek detaylı taranıyor...")
+        tasks = []
+        for year in YEARS:
+            for sort_param in SORT_PARAMS:
+                url = f"{base_model_url}?minYear={year}&maxYear={year}&sort={sort_param}"
+                task = asyncio.create_task(
+                    scrape_pages_task(session, url, 50, brand, model, semaphore, file_lock, seen_urls, seen_lock)
+                )
+                tasks.append(task)
+        await asyncio.gather(*tasks)
 
 # ================= SHUTDOWN HANDLER =================
 

@@ -177,10 +177,16 @@ export default function Home() {
     // Cascading resets
     if (name === "Marka") {
       next.Seri = ""; next.Model = ""; next.Yil = "";
+      next.Vites_Tipi = ""; next.Yakit_Tipi = ""; next.Kasa_Tipi = ""; next.Renk = "";
+      next.Motor_Hacmi_cc = ""; next.Motor_Gucu_hp = ""; next.Silindir_Sayisi = ""; next.Koltuk_Sayisi = "";
     } else if (name === "Seri") {
       next.Model = ""; next.Yil = "";
+      next.Vites_Tipi = ""; next.Yakit_Tipi = ""; next.Kasa_Tipi = ""; next.Renk = "";
+      next.Motor_Hacmi_cc = ""; next.Motor_Gucu_hp = ""; next.Silindir_Sayisi = ""; next.Koltuk_Sayisi = "";
     } else if (name === "Model") {
       next.Yil = "";
+      next.Vites_Tipi = ""; next.Yakit_Tipi = ""; next.Kasa_Tipi = ""; next.Renk = "";
+      next.Motor_Hacmi_cc = ""; next.Motor_Gucu_hp = ""; next.Silindir_Sayisi = ""; next.Koltuk_Sayisi = "";
     }
 
     // Kullanıcı manuel değiştirirse auto-filled durumunu kaldır

@@ -23,7 +23,8 @@ class PriceExplainer:
             num_feats = self.model_data.get("numerical_features", [])
             self.out_features = cat_feats + num_feats
             
-            self.explainer = shap.TreeExplainer(self.regressor)
+            tree_model = self.regressor.regressor_ if hasattr(self.regressor, "regressor_") else self.regressor
+            self.explainer = shap.TreeExplainer(tree_model)
             self.is_ready = True
         except Exception as e:
             print(f"Failed to load explainer: {e}")
@@ -44,12 +45,30 @@ class PriceExplainer:
             # 2. Transform input
             X_trans = self.preprocessor.transform(df_input)
             
-            # 3. Calculate SHAP values
+            # 3. Get SHAP values
             shap_values = self.explainer.shap_values(X_trans)
-            
-            # For a single prediction, shap_values is a 1D array
             impacts = shap_values[0]
-            base_value = float(self.explainer.expected_value)
+            
+            # Check if model was wrapped in TransformedTargetRegressor
+            is_log_target = hasattr(self.regressor, "regressor_")
+            
+            if is_log_target:
+                # impacts are in log space.
+                log_base = float(self.explainer.expected_value)
+                base_price_tl = np.exp(log_base)
+                total_diff_tl = final_price - base_price_tl
+                
+                sum_log_impacts = sum(impacts)
+                if abs(sum_log_impacts) > 1e-6:
+                    # Distribute the TL difference proportionally to the log impacts
+                    impacts_tl = [ (val / sum_log_impacts) * total_diff_tl for val in impacts ]
+                else:
+                    impacts_tl = [0.0] * len(impacts)
+                    
+                base_value = base_price_tl
+                impacts = impacts_tl
+            else:
+                base_value = float(self.explainer.expected_value)
             
             # Group the impacts into readable categories for the frontend
             # We don't want to show 20 different features to a user, group them logically.
@@ -83,8 +102,8 @@ class PriceExplainer:
                     grouped_impacts["other_impact"] += val
                     
             # Ensure the sum adds up to final price (handle slight floating point differences)
-            total_calc = sum([v for k, v in grouped_impacts.items() if k not in ["final_price"]])
-            diff = final_price - total_calc
+            total_calc = sum([v for k, v in grouped_impacts.items() if k not in ["final_price", "base_price"]])
+            diff = final_price - (base_value + total_calc)
             grouped_impacts["other_impact"] += diff
             
             # Round values

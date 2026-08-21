@@ -23,8 +23,8 @@ USER_AGENTS = [
 INPUT_FILE = sys.argv[1] if len(sys.argv) > 1 else "cleaned_links.txt"
 OUTPUT_FILE = "araba_verileri.jsonl"
 CHECKPOINT_FILE = "islenen_linkler.txt"
-CONCURRENCY_LIMIT = 2  # Max 1.5 - 2 istek / saniye
-MAX_RETRIES = 5
+CONCURRENCY_LIMIT = 1  # Güvenli mod: Sadece 1 eşzamanlı istek
+MAX_RETRIES = 10
 
 # --- LOGGING SETUP ---
 logger = logging.getLogger('DetayCekici')
@@ -153,8 +153,8 @@ async def fetch_and_process(url, session, semaphore, output_lock, processed_lock
     async with semaphore:
         for attempt in range(1, MAX_RETRIES + 1):
             try:
-                # Anti-Ban Pacing - Mobil İnternet Turbo Mod
-                await asyncio.sleep(random.uniform(1.5, 2.5))
+                # Anti-Ban Pacing - Gizli (Hayalet) Akış Modu
+                await asyncio.sleep(random.uniform(5.0, 10.0))
                 
                 headers = {"User-Agent": random.choice(USER_AGENTS)}
                 response = await session.get(url, headers=headers, timeout=15)

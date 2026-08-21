@@ -97,9 +97,12 @@ for idx, tc in enumerate(test_cases, 1):
     
     if response.status_code == 200:
         res = response.json()
-        price = res.get("predicted_price", 0)
-        low = res.get("confidence_low", 0)
-        high = res.get("confidence_high", 0)
+        price = res.get("tahmini_fiyat", 0)
+        
+        aralik = res.get("fiyat_araligi", {})
+        low = aralik.get("min", 0)
+        high = aralik.get("max", 0)
+        
         is_outlier = res.get("is_outlier", False)
         warning = res.get("outlier_warning", "")
         
@@ -109,13 +112,11 @@ for idx, tc in enumerate(test_cases, 1):
         if is_outlier:
             print(f"  ⚠️ OUTLIER FLAGGED: {warning}")
         
-        exp = res.get("explanation")
+        exp = res.get("fiyat_etkenleri", [])
         if exp:
             print(f"  Explanation Breakdown:")
-            print(f"    Base Avg: {exp.get('base_average',0):,.0f}")
-            print(f"    KM Impact: {exp.get('km_impact',0):,.0f}")
-            print(f"    Age Impact: {exp.get('age_impact',0):,.0f}")
-            print(f"    Damage Impact: {exp.get('damage_impact',0):,.0f}")
+            for item in exp:
+                print(f"    {item['isim']}: {item['miktar']:,.0f} ({item['yon']})")
     else:
         print(f"  ❌ ERROR {response.status_code}: {response.text}")
 

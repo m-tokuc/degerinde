@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 import joblib
 from dotenv import load_dotenv
-from sklearn.compose import ColumnTransformer
+from sklearn.compose import ColumnTransformer, TransformedTargetRegressor
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.impute import SimpleImputer
@@ -133,9 +133,27 @@ print("=" * 60)
 print("  DEĞERİNDE — ARAÇ FİYAT TAHMİN MODELİ EĞİTİMİ v5")
 print("=" * 60)
 
-print("\n1. araclar_clean yükleniyor (yoksa legacy backfill)...")
-df = load_clean_dataframe()
-print(f"   Toplam {len(df):,} temiz kayıt.")
+print("\n1. araba_verileri.jsonl dosyasından veri okunuyor ve NLP parser ile işleniyor (Veritabanı bağımsız)...")
+import json
+from schema_clean import normalize_raw_listing
+
+rows = []
+try:
+    with open("araba_verileri.jsonl", "r", encoding="utf-8") as f:
+        for line in f:
+            if not line.strip(): continue
+            try:
+                raw = json.loads(line)
+                clean = normalize_raw_listing(raw)
+                if clean:
+                    rows.append(clean)
+            except Exception:
+                pass
+except FileNotFoundError:
+    print("Hata: araba_verileri.jsonl bulunamadı!")
+
+df = pd.DataFrame(rows)
+print(f"   Toplam {len(df):,} NLP işlenmiş kayıt.")
 
 # Harmonize column names used by ML (legacy Turkish display names in pipeline)
 df = df.rename(
@@ -202,12 +220,23 @@ df["Koltuk Sayısı"] = (
     .astype(str)
 )
 
-print("\n4. Outlier temizleme (eğitim seti)...")
+print("\n4. Acımasız Veri Temizliği ve Outlier (eğitim seti)...")
 n_before = len(df)
-df = df[df["Fiyat"].between(50_000, 100_000_000)]
-df = df[df["Kilometre"].between(0, 1_000_000)]
-df = df[df["Yıl"].between(1990, 2026)]
-df = df[df["Marka"].notna() & (df["Marka"] != "Diğer")]
+
+# Kritik kolonlarda NaN ve boş değerleri acımasızca atıyoruz
+df = df.dropna(subset=["Marka", "Seri", "Model", "Yıl"])
+df = df[df["Marka"].astype(str).str.strip() != ""]
+df = df[df["Seri"].astype(str).str.strip() != ""]
+df = df[df["Model"].astype(str).str.strip() != ""]
+
+# Sıkı aykırı değer filtreleri (User onaylı)
+df = df[df["Fiyat"].between(100_000, 25_000_000)]
+df = df[df["Kilometre"].between(0, 800_000)]
+df = df[df["Yıl"] > 1980]
+df = df[df["Yıl"] <= 2026]
+df = df[df["Marka"] != "Diğer"]
+
+# Ekstra güven: İstatiksel aşırı uçları da kes
 Q1 = df["Fiyat"].quantile(0.01)
 Q3 = df["Fiyat"].quantile(0.99)
 df = df[df["Fiyat"].between(Q1, Q3)]
@@ -236,7 +265,7 @@ try:
 
     regressor = xgb.XGBRegressor(
         n_estimators=800,
-        max_depth=7,
+        max_depth=10,
         learning_rate=0.05,
         subsample=0.8,
         colsample_bytree=0.8,
@@ -285,7 +314,14 @@ preprocessor = ColumnTransformer(
     ],
     remainder="drop",
 )
-pipeline = Pipeline([("preprocessor", preprocessor), ("regressor", regressor)])
+
+log_regressor = TransformedTargetRegressor(
+    regressor=regressor,
+    func=np.log1p,
+    inverse_func=np.expm1
+)
+
+pipeline = Pipeline([("preprocessor", preprocessor), ("regressor", log_regressor)])
 
 X = df[CATEGORICAL_FEATURES + NUMERICAL_FEATURES].copy()
 y = df["Fiyat"].copy()
@@ -365,7 +401,8 @@ for lo, hi, label in [
 
 print("\n12. Feature importances:")
 try:
-    importances = pipeline.named_steps["regressor"].feature_importances_
+    # TransformedTargetRegressor kullanıldığı için içindeki gerçek regressore (.regressor_) erişiyoruz
+    importances = pipeline.named_steps["regressor"].regressor_.feature_importances_
     fi_df = pd.DataFrame(
         {
             "feature": CATEGORICAL_FEATURES + NUMERICAL_FEATURES,

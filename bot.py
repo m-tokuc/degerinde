@@ -37,23 +37,22 @@ import undetected_chromedriver as uc
 #  YAPILANDIRMA
 # ============================================================================
 
-# Paralel Chrome penceresi — 3-4 gün boyunca gözetimsiz çalışacak
-# Stabilite için 1 Chrome = minimum RAM, minimum risk
-PARALEL_ISCI = 5
+# Cloudflare Bypass - Concurrency düşürüldü
+PARALEL_ISCI = 4
 
 # Giriş/çıkış dosyaları
-LINK_DOSYASI = "mac_linkler.txt"
+LINK_DOSYASI = "cleaned_links.txt"
 CIKTI_DOSYASI = "araba_verileri.jsonl"
 
-# Bekleme süreleri (saniye) — yavaş ama güvenli
-SAYFA_YUKLEME_BEKLEME = 5        # Sayfa açıldıktan sonra
-SEKME_TIKLAMA_BEKLEME = 3        # Sekme tıklandıktan sonra
-ILAN_ARASI_BEKLEME_MIN = 2       # İlanlar arası minimum bekleme
-ILAN_ARASI_BEKLEME_MAX = 4       # İlanlar arası maksimum bekleme
+# Bekleme süreleri (saniye) — Jitter
+SAYFA_YUKLEME_BEKLEME = 1.5      # Sayfa açıldıktan sonra
+SEKME_TIKLAMA_BEKLEME = 1        # Sekme tıklandıktan sonra
+ILAN_ARASI_BEKLEME_MIN = 2.1     # İlanlar arası minimum bekleme (Cloudflare bypass)
+ILAN_ARASI_BEKLEME_MAX = 5.7     # İlanlar arası maksimum bekleme
 
 # Eksik veri durumunda retry
 MIN_ALAN_SAYISI = 10             # Bu kadar alandan az gelirse retry
-MAX_RETRY = 2                    # Maksimum tekrar deneme
+MAX_RETRY = 3                    # Maksimum tekrar deneme (3 defa)
 
 # Ardışık hata tespiti — bu kadar arka arkaya 0 alan gelirse Chrome yeniden başlar
 ARDISIK_HATA_LIMITI = 5
@@ -121,6 +120,7 @@ def tarayici_hazirla():
     # Yarı-headless: Cloudflare'i daha kolay geçer
 
     # RAM tasarrufu ayarları
+    # RAM tasarrufu ve Lightweight Mod (Images/CSS/Fonts Disabled)
     options.add_argument("--disable-extensions")
     options.add_argument("--disable-plugins")
     options.add_argument("--disable-infobars")
@@ -128,6 +128,10 @@ def tarayici_hazirla():
     options.add_argument("--disable-popup-blocking")
     options.add_argument("--disable-default-apps")
     options.add_argument("--disable-translate")
+    options.add_argument("--disable-image-loading")
+    options.add_argument("--disable-css")
+    options.add_argument("--disable-fonts")
+    options.add_argument("--blink-settings=imagesEnabled=false")
     options.add_argument("--disable-background-timer-throttling")
     options.add_argument("--disable-renderer-backgrounding")
     options.add_argument("--disable-backgrounding-occluded-windows")
@@ -135,17 +139,17 @@ def tarayici_hazirla():
     # Anti-bot önlemleri
     # Anti-bot önlemleri undetected-chromedriver tarafından otomatik halledilir.
 
-    # Gerçekçi User-Agent
-    options.add_argument(
-        "--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
-    )
+    # Gerçekçi User-Agent (Rotasyonlu)
+    user_agents = [
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:127.0) Gecko/20100101 Firefox/127.0",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15"
+    ]
+    options.add_argument(f"--user-agent={random.choice(user_agents)}")
 
-    # Resimleri kapat (RAM + hız)
-    # Resimleri kapatmak undetected-chromedriver'da farklı yöntemle yapılmalı veya atlanmalı.
-    # Şimdilik standart bırakıyoruz ki bozulmasın.
-
-    options.page_load_strategy = "normal"
+    options.page_load_strategy = "eager"
 
     driver = uc.Chrome(options=options, version_main=151)
     driver.implicitly_wait(3)
@@ -641,7 +645,8 @@ def tek_ilan_retry_ile(driver, url):
 
         if deneme <= MAX_RETRY:
             print(f"      ⚠️  Sadece {alan_sayisi} alan geldi. Tekrar deneniyor ({deneme}/{MAX_RETRY})...")
-            time.sleep(3)
+            # Rastgele bekleme (Jitter) ekle
+            time.sleep(random.uniform(3.5, 7.2))
         else:
             print(f"      ⚠️  {MAX_RETRY} denemeden sonra sadece {alan_sayisi} alan alınabildi.")
 

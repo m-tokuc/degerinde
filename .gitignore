@@ -61,7 +61,8 @@ brain/
 # Large Datasets
 araba_verileri.jsonl
 dev_veriseti.jsonl
-scraped_links.txt
+*links.txt
+*linkler.txt
 
 # Backup frontend
 frontend_flutter/

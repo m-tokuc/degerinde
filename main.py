@@ -25,11 +25,20 @@ from feature_engineering import (
     NUMERICAL_FEATURES
 )
 
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
 # Logger Yapılandırması
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("degerinde")
 
+# Rate Limiter
+limiter = Limiter(key_func=get_remote_address)
+
 app = FastAPI(title="Değerinde AI API", version="5.0")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # CORS Yapılandırması
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*").split(",")
@@ -119,15 +128,38 @@ def load_data_cache():
             _combo_cache = pd.read_sql(query, conn)
             logger.info(f"CRITICAL: Usable (Marka+Seri): {len(_combo_cache)}")
     except Exception as e:
-        logger.warning(f"Önbellek yüklenirken hata oluştu (seed verisi fallback): {e}")
-        if os.path.exists("seed_data.jsonl"):
+        logger.warning(f"Veritabanı hatası: {e}. JSONL yedeğine geçiliyor...")
+        if os.path.exists("araba_verileri.jsonl"):
+            _combo_cache = pd.read_json("araba_verileri.jsonl", lines=True)
+            rename_map = {
+                "Yıl": "Yil",
+                "Vites Tipi": "Vites_Tipi",
+                "Yakıt Tipi": "Yakit_Tipi",
+                "Kasa Tipi": "Kasa_Tipi",
+                "Motor Hacmi": "Motor_Hacmi",
+                "Motor Gücü": "Motor_Gucu",
+                "Garanti Durumu": "Garanti_Durumu",
+                "Çekiş": "Cekis"
+            }
+            _combo_cache = _combo_cache.rename(columns=rename_map)
+            logger.info(f"araba_verileri.jsonl hizlica yüklendi. {len(_combo_cache)} kayıt.")
+        elif os.path.exists("seed_data.jsonl"):
             _combo_cache = pd.read_json("seed_data.jsonl", lines=True)
-            # Normalize Turkish column names from raw scrape format
-            if "Yıl" in _combo_cache.columns and "Yil" not in _combo_cache.columns:
-                _combo_cache = _combo_cache.rename(columns={"Yıl": "Yil"})
+            rename_map = {
+                "Yıl": "Yil",
+                "Vites Tipi": "Vites_Tipi",
+                "Yakıt Tipi": "Yakit_Tipi",
+                "Kasa Tipi": "Kasa_Tipi",
+                "Motor Hacmi": "Motor_Hacmi",
+                "Motor Gücü": "Motor_Gucu",
+                "Garanti Durumu": "Garanti_Durumu",
+                "Çekiş": "Cekis"
+            }
+            _combo_cache = _combo_cache.rename(columns=rename_map)
+            logger.info(f"seed_data.jsonl hizlica yüklendi. {len(_combo_cache)} kayıt.")
             if "Kilometre" in _combo_cache.columns:
                 _combo_cache["Yil"] = pd.to_numeric(_combo_cache["Yil"], errors="coerce")
-    # Always ensure 'Yil' column exists (not 'Yıl')
+
     if _combo_cache is not None and "Yıl" in _combo_cache.columns and "Yil" not in _combo_cache.columns:
         _combo_cache = _combo_cache.rename(columns={"Yıl": "Yil"})
     if _combo_cache is not None and "Marka" in _combo_cache.columns:
@@ -163,8 +195,8 @@ class AutoFillSpecsRequest(BaseModel):
 class CarFeaturesRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
-    Kilometre: int
-    Yil: int
+    Kilometre: Optional[int] = 100000
+    Yil: Optional[int] = 2015
     Marka: Optional[str] = 'Belirtilmemiş'
     Seri: Optional[str] = 'Belirtilmemiş'
     Model: Optional[str] = 'Belirtilmemiş'
@@ -271,7 +303,7 @@ def _resolve_hasar(req: CarFeaturesRequest) -> dict:
             # All provided parts are Orijinal
             has_tramer = 1 if tramer > 0 else 0
             return {
-                "Boya_Durumu": "Tramerli" if has_tramer else "Belirsiz",
+                "Boya_Durumu": "Tramerli" if has_tramer else "Temiz",
                 "Has_Boya": 0,
                 "Has_Degisen": 0,
                 "Has_Tramer": has_tramer,
@@ -327,8 +359,10 @@ def _resolve_hasar(req: CarFeaturesRequest) -> dict:
         "Boyalı": {"Boya_Durumu": "Boyalı", "Has_Boya": 1, "Has_Degisen": 0, "Has_Tramer": 0},
         "Değişenli": {"Boya_Durumu": "Değişenli", "Has_Boya": 0, "Has_Degisen": 1, "Has_Tramer": 0},
         "Boyalı+Değişen": {"Boya_Durumu": "Boyalı+Değişen", "Has_Boya": 1, "Has_Degisen": 1, "Has_Tramer": 0},
-        "Tramerli": {"Boya_Durumu": "Tramerli", "Has_Boya": 0, "Has_Degisen": 0, "Has_Tramer": 1},
+        "Lokal Boyalı": {"Boya_Durumu": "Lokal Boyalı", "Has_Boya": 1, "Has_Degisen": 0, "Has_Tramer": 0},
+        "Tramerli": {"Boya_Durumu": "Tramerli", "Has_Boya": 0, "Has_Degisen": 0, "Has_Tramer": 1}
     }
+    
     if label in label_map:
         out = dict(label_map[label])
         if tramer > 0:
@@ -336,16 +370,18 @@ def _resolve_hasar(req: CarFeaturesRequest) -> dict:
             if out["Boya_Durumu"] == "Belirsiz":
                 out["Boya_Durumu"] = "Tramerli"
         out["Tramer_TL"] = tramer
-        return out
-
-    flags = parse_hasar_flags(label, tramer_tl=tramer)
-    flags["Tramer_TL"] = tramer
-    # Ensure 13 part keys always exist
+    else:
+        # Fallback for complex strings
+        out = parse_hasar_flags(label, tramer_tl=tramer) if "parse_hasar_flags" in globals() else {"Boya_Durumu": "Belirsiz", "Has_Boya": 0, "Has_Degisen": 0, "Has_Tramer": 0}
+        out["Tramer_TL"] = tramer
+        
+    # Ensure 13 part keys always exist to avoid KeyError 'kaput'
     for _part in ["kaput", "tavan", "bagaj", "sol_on_camurluk", "sag_on_camurluk",
                   "sol_arka_camurluk", "sag_arka_camurluk", "sol_on_kapi", "sag_on_kapi",
                   "sol_arka_kapi", "sag_arka_kapi", "on_tampon", "arka_tampon"]:
-        flags.setdefault(_part, 0)
-    return flags
+        out.setdefault(_part, 0)
+        
+    return out
 
 
 # ─── ENDPOINTS ───
@@ -446,9 +482,21 @@ def auto_fill_specs(req: AutoFillSpecsRequest):
     return res
 
 @app.post("/api/predict")
+@limiter.limit("30/minute")
 def predict(req: CarFeaturesRequest, request: Request):
     if not is_model_loaded or model is None:
         raise HTTPException(status_code=503, detail="Yapay zeka modeli henüz yüklenmedi.")
+
+    # Sanity Checks (Mantıksal Sınır Korumaları)
+    if req.Yil is None or req.Yil < 1990:
+        req.Yil = 1990
+    elif req.Yil > 2026:
+        req.Yil = 2026
+        
+    if req.Kilometre is None or req.Kilometre < 0:
+        req.Kilometre = 0
+    elif req.Kilometre > 1000000:
+        req.Kilometre = 1000000
 
     hasar = _resolve_hasar(req)
     arac_yasi = max(0, 2026 - req.Yil)
