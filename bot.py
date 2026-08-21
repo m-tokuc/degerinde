@@ -27,13 +27,10 @@ import random
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
+import undetected_chromedriver as uc
 
 
 # ============================================================================
@@ -42,11 +39,11 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 # Paralel Chrome penceresi — 3-4 gün boyunca gözetimsiz çalışacak
 # Stabilite için 1 Chrome = minimum RAM, minimum risk
-PARALEL_ISCI = 1
+PARALEL_ISCI = 5
 
 # Giriş/çıkış dosyaları
-LINK_DOSYASI = "linkler.txt"
-CIKTI_DOSYASI = "dev_veriseti.jsonl"
+LINK_DOSYASI = "mac_linkler.txt"
+CIKTI_DOSYASI = "araba_verileri.jsonl"
 
 # Bekleme süreleri (saniye) — yavaş ama güvenli
 SAYFA_YUKLEME_BEKLEME = 5        # Sayfa açıldıktan sonra
@@ -116,15 +113,12 @@ def tarayici_hazirla():
     - Resimler kapalı (RAM + hız)
     - Tek seferlik açılır, URL güncellenerek kullanılır
     """
-    options = Options()
-
-    # Headless KAPALI — Cloudflare bot korumasını aşmak için
-    # options.add_argument("--headless=new")
-
+    options = uc.ChromeOptions()
+    options.add_argument("--headless=new")
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--window-size=1400,900")
+    # Yarı-headless: Cloudflare'i daha kolay geçer
 
     # RAM tasarrufu ayarları
     options.add_argument("--disable-extensions")
@@ -139,9 +133,7 @@ def tarayici_hazirla():
     options.add_argument("--disable-backgrounding-occluded-windows")
 
     # Anti-bot önlemleri
-    options.add_argument("--disable-blink-features=AutomationControlled")
-    options.add_experimental_option("excludeSwitches", ["enable-automation"])
-    options.add_experimental_option("useAutomationExtension", False)
+    # Anti-bot önlemleri undetected-chromedriver tarafından otomatik halledilir.
 
     # Gerçekçi User-Agent
     options.add_argument(
@@ -150,26 +142,19 @@ def tarayici_hazirla():
     )
 
     # Resimleri kapat (RAM + hız)
-    prefs = {
-        "profile.managed_default_content_settings.images": 2,
-        "profile.default_content_setting_values.notifications": 2,
-    }
-    options.add_experimental_option("prefs", prefs)
+    # Resimleri kapatmak undetected-chromedriver'da farklı yöntemle yapılmalı veya atlanmalı.
+    # Şimdilik standart bırakıyoruz ki bozulmasın.
 
     options.page_load_strategy = "normal"
 
-    driver = webdriver.Chrome(
-        service=Service(ChromeDriverManager().install()),
-        options=options,
-    )
+    driver = uc.Chrome(options=options, version_main=151)
+    driver.implicitly_wait(3)
+    driver.set_page_load_timeout(30)
 
     # navigator.webdriver gizle
     driver.execute_script(
         "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
     )
-
-    # Sayfa yükleme timeout
-    driver.set_page_load_timeout(30)
 
     # Global listeye ekle (zombi koruması)
     with driver_listesi_kilidi:
