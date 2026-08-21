@@ -49,3 +49,19 @@ Bugün projede kurumsal tarafa (B2B) yönelik çok güzel güncellemeler yaptım
 En büyük yenilik ise PDF raporu özelliği oldu. Galerici veya ekspertiz müşterileri için sonucu şık bir "Antetli Kağıt" gibi A4 formatında bilgisayara indiren bir buton ekledim. İlk başta PDF'i çizerken `html2canvas` kütüphanesi yeni nesil Tailwind renklerinde (oklch/lab) patladı ama onu çok daha modern bir SVG motoru olan `html-to-image` ile değiştirerek çözdüm. 
 
 Bu güncellemeleri yaparken arayüzde bazı seçeneklerin (Renk, Kimden vs.) kaybolması ve canlıya çıkarken FastAPI sunucusunun koca modeli ve 140 bin satır veriyi RAM'e yüklemesi uzun sürdüğü için Nginx'in "502 Bad Gateway" atması gibi birkaç kriz yaşadım ama kodlara girip onları da düzelttim. Ayrıca veri temizliği yapıp veritabanında aynı markanın farklı yazımlarını (Citroen ve Citroën) tek isim altında birleştirdim. Şu an PDF çıktısı veren, sade ama arka planda tam güç çalışan harika bir ürün ortaya çıktı. Tüm bu emeğin sonucunu canlı olarak https://degerinde.duckdns.org/ adresinden inceleyebilirsiniz.
+
+---
+
+## 📅 21 Ağustos Raporu
+
+Bugün projenin kararlılığını artırmak ve veri toplama süreçlerini optimize etmek üzerine çalıştım. Frontend tarafında form state yönetimini iyileştirerek formun istenmeyen durumlarda sıfırlanması sorununu çözdüm. PDF modülüne çoklu sayfa (multi-page) desteği ekleyerek uzun raporların eksiksiz oluşturulmasını sağladım.
+
+Güvenlik tarafında, FastAPI backend'imize `slowapi` entegrasyonu ile dakikada 30 istek sınırı (rate limit) getirdim. Veri toplama (scraping) altyapımızı ise asenkron `curl_cffi` kütüphanesine geçirerek daha performanslı hale getirdim. İş yükünü Mac ve Oracle sunucuları arasında paylaştırarak, ban riski olmadan (anti-bot mekanizmalarıyla) çok daha hızlı veri çekebilecek bir yapı kurdum. Nginx ve Let's Encrypt SSL sertifika süreçlerini otomatize eden bir bash scripti hazırlayarak sunucu yapılandırmasını tamamladım.
+
+---
+
+## 📊 Haftalık Rapor (15 - 21 Ağustos)
+
+Bu hafta, projemizi temel bir prototipten production ortamına hazır, kurumsal bir B2B ürününe dönüştürmek ana hedefimizdi. Arayüzü sadeleştirerek kullanıcıdan istenen karmaşık araç özelliklerini (motor hacmi, silindir sayısı vb.) arka planda otomatik tamamlayan bir API servisi devreye aldık. Kurumsal kullanıcılar için detaylı PDF ekspertiz raporu oluşturma özelliğini yayına aldık.
+
+Sistem güvenliğini ve model kararlılığını artırmak için backend tarafında Pydantic doğrulama sınırlarını katılaştırdık; böylece hatalı verilerin modeli çökertmesini engelledik. Canlı sunucumuzu (Oracle) Docker iç ağıyla izole edip, Nginx ve SSL ile dışarıya güvenli şekilde açtık. Veri toplama botlarımızı iki sunucu üzerinden dağıtık çalışacak şekilde güncelledik. Önümüzdeki hafta, toplanan yeni ve kapsamlı verilerle yapay zeka modelimizi eğitmeye odaklanacağız.
