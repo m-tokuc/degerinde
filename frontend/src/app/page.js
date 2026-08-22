@@ -194,8 +194,8 @@ export default function Home() {
       setAutoFilledFields(prev => ({ ...prev, [name]: false }));
     }
 
-    // Model seçildiğinde AI auto-fill yap
-    if (name === "Model" && value && next.Marka && next.Seri) {
+    // Yıl 4 haneli olarak girildiğinde AI auto-fill yap
+    if (name === "Yil" && value && value.length === 4 && next.Marka && next.Seri && next.Model) {
       try {
         const res = await fetch('/api/auto_fill_specs', {
           method: "POST",
