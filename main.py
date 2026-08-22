@@ -117,7 +117,7 @@ def reload_model():
         return {"status": "success", "message": "Model başarıyla güncellendi."}
     except Exception as e:
         logger.error(f"❌ Model reload hatası: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Model güncellenirken sunucu hatası oluştu.")
 
 def load_data_cache():
     global _combo_cache
@@ -582,7 +582,7 @@ def predict(req: CarFeaturesRequest, request: Request):
         pred = float(model.predict(df_in)[0])
     except Exception as e:
         logger.error(f"Tahmin hatası: {e}")
-        raise HTTPException(status_code=500, detail=f"Fiyat tahmin edilirken hata: {str(e)}")
+        raise HTTPException(status_code=500, detail="Fiyat tahmin edilirken sistemsel bir hata oluştu.")
 
     # Mantık Sınırları
     pred = max(100_000, min(15_000_000, pred))
@@ -615,6 +615,53 @@ def predict(req: CarFeaturesRequest, request: Request):
                 fiyat_etkenleri.sort(key=lambda x: x["miktar"], reverse=True)
         except Exception as e:
             logger.warning(f"SHAP hatası: {e}")
+
+    # ===== SANITY POST-PROCESSING (Mantık Tutarlılık Zorlaması) =====
+    # Modelin kategorik değişken etkileşimleri yüzünden Tramer veya KM arttığında fiyatı 
+    # bazen artırmasını (Monotonic Constraint'in kategoriler arası bypass edilmesini) önler.
+    manuel_deger_kaybi = 0
+    
+    # 1. Aşırı KM Değer Kaybı
+    if req.Kilometre > 100000:
+        km_carpan = min(0.15, ((req.Kilometre - 100000) / 100000) * 0.02)
+        manuel_deger_kaybi += int(fiyat * km_carpan)
+        
+    # 2. Değişen / Boya Kaybı
+    if hasar["Has_Degisen"]:
+        manuel_deger_kaybi += int(fiyat * 0.04)
+    elif hasar["Has_Boya"]:
+        manuel_deger_kaybi += int(fiyat * 0.01)
+        
+    # 3. Yüksek Tramer Kaybı
+    if hasar["Tramer_TL"] > 5000:
+        # Tramer'in maksimum %50'si kadar etki etsin, ama aracın fiyatının %15'ini geçmesin
+        tramer_kaybi = min(fiyat * 0.15, hasar["Tramer_TL"] * 0.5)
+        manuel_deger_kaybi += int(tramer_kaybi)
+
+    # Toplam kayıp aracın %30'unu geçemez (Güvenlik)
+    manuel_deger_kaybi = int(min(fiyat * 0.30, manuel_deger_kaybi))
+
+    if manuel_deger_kaybi > 0:
+        fiyat -= manuel_deger_kaybi
+        min_fiyat = int(round(fiyat * 0.94, -3))
+        max_fiyat = int(round(fiyat * 1.06, -3))
+        
+        # SHAP açıklamasını (UI) yeni fiyata göre dengele
+        damage_found = False
+        for e in fiyat_etkenleri:
+            if e["isim"] in ["Hasar / Ekspertiz Durumu", "Kilometre Etkisi"]:
+                e["miktar"] += manuel_deger_kaybi
+                e["yon"] = "negatif"
+                damage_found = True
+                break
+        
+        if not damage_found:
+            fiyat_etkenleri.append({
+                "isim": "Hasar / Ekspertiz Durumu",
+                "miktar": manuel_deger_kaybi,
+                "yon": "negatif"
+            })
+    # ================================================================
 
     # Veritabanına Loglama
     try:
