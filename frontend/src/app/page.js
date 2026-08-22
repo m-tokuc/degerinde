@@ -203,7 +203,7 @@ export default function Home() {
           body: JSON.stringify({
             Marka: next.Marka,
             Seri: next.Seri,
-            Model: value
+            Model: next.Model
           }),
         });
         if (res.ok) {

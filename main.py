@@ -411,48 +411,64 @@ def dynamic_options(req: DynamicOptionsRequest):
         return {"markalar": [], "seriler": [], "modeller": [], "yillar": [], "vitesler": [], "yakitlar": [], "kasalar": []}
 
     df = _combo_cache
+    
+    # 1. Markalar her zaman tam liste
+    markalar = unique_sorted(df["Marka"])
+    
+    # 2. Seriler sadece Marka'ya bağlı
+    df_seri = df
     if req.Marka and req.Marka != "Belirtilmemiş":
-        df = df[df["Marka"] == req.Marka]
+        df_seri = df_seri[df_seri["Marka"] == req.Marka]
+    seriler = unique_sorted(df_seri["Seri"]) if "Seri" in df_seri.columns else []
+
+    # 3. Modeller sadece Marka ve Seri'ye bağlı
+    df_model = df_seri
     if req.Seri and req.Seri != "Belirtilmemiş":
-        df = df[df["Seri"] == req.Seri]
+        df_model = df_model[df_model["Seri"] == req.Seri]
+    modeller = unique_sorted(df_model["Model"]) if "Model" in df_model.columns else []
+
+    # 4. Yıllar Marka, Seri ve Model'e bağlı
+    df_yil = df_model
     if req.Model and req.Model != "Belirtilmemiş":
-        df = df[df["Model"] == req.Model]
-    if req.Yil:
-        yil_col = "Yil" if "Yil" in df.columns else "Yıl"
-        if yil_col in df.columns:
-            df = df[df[yil_col] == req.Yil]
-    if req.Vites_Tipi and req.Vites_Tipi != "Belirtilmemiş":
-        df = df[df["Vites_Tipi"] == req.Vites_Tipi]
-    if req.Yakit_Tipi and req.Yakit_Tipi != "Belirtilmemiş":
-        df = df[df["Yakit_Tipi"] == req.Yakit_Tipi]
-
-    df_for_years = _combo_cache
-    if req.Seri and req.Seri != "Belirtilmemiş":
-        df_for_years = _combo_cache[_combo_cache["Seri"] == req.Seri]
-    elif req.Marka and req.Marka != "Belirtilmemiş":
-        df_for_years = _combo_cache[_combo_cache["Marka"] == req.Marka]
-
-    yillar_list = []
-    if "Yil" in df_for_years.columns:
-        yillar_list = unique_int_sorted(df_for_years["Yil"])
-    elif "Yıl" in df_for_years.columns:
-        yillar_list = unique_int_sorted(df_for_years["Yıl"])
+        df_yil = df_yil[df_yil["Model"] == req.Model]
         
-    if len(yillar_list) >= 2:
-        # Interpolate between min and max to ensure no gaps
-        yillar_list = list(range(max(yillar_list), min(yillar_list) - 1, -1))
+    yillar_list = []
+    yil_col = "Yil" if "Yil" in df_yil.columns else "Yıl" if "Yıl" in df_yil.columns else None
+    if yil_col:
+        yillar_list = unique_int_sorted(df_yil[yil_col])
+        if len(yillar_list) >= 2:
+            # Eksik yılları doldurarak aralığı kapat (örn: 2018 ve 2020 varsa 2019'u da ekle)
+            yillar_list = list(range(max(yillar_list), min(yillar_list) - 1, -1))
+
+    # 5. Diğer özellikler (Vites, Yakıt vb.) seçili tüm filtrelere (Yıl dahil) göre daralır
+    df_kalan = df_yil
+    if req.Yil and yil_col:
+        df_kalan = df_kalan[df_kalan[yil_col] == req.Yil]
+        
+    # Eğer Yıl filtresi sonucu 0 satır bırakırsa, yıl filtresiz halini (df_yil) kullan
+    # Bu sayede kullanıcı yanlış/olmayan bir yıl seçse bile diğer dropdownlar boş kalmaz
+    if df_kalan.empty:
+        df_kalan = df_yil
+
+    if req.Vites_Tipi and req.Vites_Tipi != "Belirtilmemiş":
+        df_kalan = df_kalan[df_kalan["Vites_Tipi"] == req.Vites_Tipi]
+        if df_kalan.empty: df_kalan = df_yil # Fallback
+        
+    if req.Yakit_Tipi and req.Yakit_Tipi != "Belirtilmemiş":
+        df_kalan = df_kalan[df_kalan["Yakit_Tipi"] == req.Yakit_Tipi]
+        if df_kalan.empty: df_kalan = df_yil # Fallback
 
     return {
-        "markalar": unique_sorted(_combo_cache["Marka"]),
-        "seriler": unique_sorted(df["Seri"]) if "Seri" in df else [],
-        "modeller": unique_sorted(df["Model"]) if "Model" in df else [],
+        "markalar": markalar,
+        "seriler": seriler,
+        "modeller": modeller,
         "yillar": yillar_list,
-        "vitesler": unique_sorted(_combo_cache["Vites_Tipi"]) if "Vites_Tipi" in _combo_cache else [],
-        "yakitlar": unique_sorted(_combo_cache["Yakit_Tipi"]) if "Yakit_Tipi" in _combo_cache else [],
-        "kasalar": unique_sorted(_combo_cache["Kasa_Tipi"]) if "Kasa_Tipi" in _combo_cache else [],
-        "renkler": unique_sorted(_combo_cache["Renk"]) if "Renk" in _combo_cache else [],
-        "kimden": unique_sorted(_combo_cache["Kimden"]) if "Kimden" in _combo_cache else [],
-        "garanti_durumu": unique_sorted(_combo_cache["Garanti_Durumu"]) if "Garanti_Durumu" in _combo_cache else [],
+        "vitesler": unique_sorted(df_kalan["Vites_Tipi"]) if "Vites_Tipi" in df_kalan else [],
+        "yakitlar": unique_sorted(df_kalan["Yakit_Tipi"]) if "Yakit_Tipi" in df_kalan else [],
+        "kasalar": unique_sorted(df_kalan["Kasa_Tipi"]) if "Kasa_Tipi" in df_kalan else [],
+        "renkler": unique_sorted(df_kalan["Renk"]) if "Renk" in df_kalan else [],
+        "kimden": unique_sorted(df_kalan["Kimden"]) if "Kimden" in df_kalan else [],
+        "garanti_durumu": unique_sorted(df_kalan["Garanti_Durumu"]) if "Garanti_Durumu" in df_kalan else [],
     }
 
 @app.post("/api/auto_fill_specs")
