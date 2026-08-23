@@ -519,57 +519,90 @@ def predict(req: CarFeaturesRequest, request: Request):
     # Aşama 2: Yapay Zeka Boşluk Doldurma (Imputation via Mode)
     motor_hacmi = req.Motor_Hacmi_cc
     motor_gucu = req.Motor_Gucu_hp
+    kasa_tipi = req.Kasa_Tipi
+    vites_tipi = req.Vites_Tipi
+    yakit_tipi = req.Yakit_Tipi
+    cekis = req.Cekis
+    garanti_durumu = req.Garanti_Durumu
+    silindir_sayisi = req.Silindir_Sayisi
+    koltuk_sayisi = req.Koltuk_Sayisi
     
-    if (motor_hacmi is None or motor_hacmi == 0) or (motor_gucu is None or motor_gucu == 0):
-        if _combo_cache is not None and not _combo_cache.empty:
-            df_fallback = _combo_cache[
-                (_combo_cache["Marka"] == req.Marka) & 
-                (_combo_cache["Seri"] == req.Seri)
-            ]
-            if req.Model and req.Model != "Belirtilmemiş":
-                df_model = df_fallback[df_fallback["Model"] == req.Model]
-                if not df_model.empty:
-                    df_fallback = df_model
-                    
-            if not df_fallback.empty:
-                if (motor_hacmi is None or motor_hacmi == 0) and "Motor_Hacmi" in df_fallback.columns:
-                    valid_h = df_fallback["Motor_Hacmi"].replace("Belirtilmemiş", pd.NA).dropna()
-                    if not valid_h.empty:
-                        # "1461 cc" gibi string'den float çıkarma
-                        h_mode = valid_h.mode().iloc[0]
-                        import re
-                        m = re.search(r"(\d+(?:\.\d+)?)", str(h_mode))
-                        if m:
-                            motor_hacmi = float(m.group(1))
-                            
-                if (motor_gucu is None or motor_gucu == 0) and "Motor_Gucu" in df_fallback.columns:
-                    valid_g = df_fallback["Motor_Gucu"].replace("Belirtilmemiş", pd.NA).dropna()
-                    if not valid_g.empty:
-                        g_mode = valid_g.mode().iloc[0]
-                        import re
-                        m = re.search(r"(\d+(?:\.\d+)?)", str(g_mode))
-                        if m:
-                            motor_gucu = float(m.group(1))
+    if _combo_cache is not None and not _combo_cache.empty:
+        df_fallback = _combo_cache[
+            (_combo_cache["Marka"] == req.Marka) & 
+            (_combo_cache["Seri"] == req.Seri)
+        ]
+        if req.Model and req.Model != "Belirtilmemiş":
+            df_model = df_fallback[df_fallback["Model"] == req.Model]
+            if not df_model.empty:
+                df_fallback = df_model
+                
+        if not df_fallback.empty:
+            def get_mode(col):
+                if col in df_fallback.columns:
+                    valid = df_fallback[col].replace("Belirtilmemiş", pd.NA).dropna()
+                    if not valid.empty:
+                        return valid.mode().iloc[0]
+                return None
+
+            if (motor_hacmi is None or motor_hacmi == 0):
+                h_mode = get_mode("Motor_Hacmi")
+                if h_mode:
+                    import re
+                    m = re.search(r"(\d+(?:\.\d+)?)", str(h_mode))
+                    if m:
+                        motor_hacmi = float(m.group(1))
+                        
+            if (motor_gucu is None or motor_gucu == 0):
+                g_mode = get_mode("Motor_Gucu")
+                if g_mode:
+                    import re
+                    m = re.search(r"(\d+(?:\.\d+)?)", str(g_mode))
+                    if m:
+                        motor_gucu = float(m.group(1))
+            
+            if not kasa_tipi or kasa_tipi == "Belirtilmemiş":
+                kasa_tipi = get_mode("Kasa_Tipi") or kasa_tipi
+            if not vites_tipi or vites_tipi == "Belirtilmemiş":
+                vites_tipi = get_mode("Vites_Tipi") or vites_tipi
+            if not yakit_tipi or yakit_tipi == "Belirtilmemiş":
+                yakit_tipi = get_mode("Yakit_Tipi") or yakit_tipi
+            if not cekis or cekis == "Belirtilmemiş":
+                cekis = get_mode("Cekis") or cekis
+            if not garanti_durumu or garanti_durumu == "Belirtilmemiş":
+                garanti_durumu = get_mode("Garanti_Durumu") or garanti_durumu
+            if not silindir_sayisi or silindir_sayisi == "Belirtilmemiş":
+                silindir_sayisi = get_mode("Silindir_Sayisi") or silindir_sayisi
+            if not koltuk_sayisi or koltuk_sayisi == "Belirtilmemiş":
+                koltuk_sayisi = get_mode("Koltuk_Sayisi") or koltuk_sayisi
 
     # Hala null ise fallback (eski uydurma 1600 yerine en azından 1300 mantıklı bir araç)
     if motor_hacmi is None or motor_hacmi == 0: motor_hacmi = 1300.0
     if motor_gucu is None or motor_gucu == 0: motor_gucu = 90.0
+    
+    if not kasa_tipi or kasa_tipi == "Belirtilmemiş": kasa_tipi = "Hatchback 5 Kapı"
+    if not vites_tipi or vites_tipi == "Belirtilmemiş": vites_tipi = "Manuel"
+    if not yakit_tipi or yakit_tipi == "Belirtilmemiş": yakit_tipi = "Benzin"
+    if not cekis or cekis == "Belirtilmemiş": cekis = "Önden Çekiş"
+    if not garanti_durumu or garanti_durumu == "Belirtilmemiş": garanti_durumu = "Yok"
+    if not silindir_sayisi or silindir_sayisi == "Belirtilmemiş": silindir_sayisi = "4"
+    if not koltuk_sayisi or koltuk_sayisi == "Belirtilmemiş": koltuk_sayisi = "5"
 
     input_data = {
         "Marka": req.Marka,
         "Seri": req.Seri,
         "Model": req.Model,
-        "Kasa Tipi": req.Kasa_Tipi,
-        "Vites Tipi": req.Vites_Tipi,
-        "Yakıt Tipi": req.Yakit_Tipi,
-        "Çekiş": req.Cekis,
+        "Kasa_Tipi": kasa_tipi,
+        "Vites_Tipi": vites_tipi,
+        "Yakit_Tipi": yakit_tipi,
+        "Cekis": cekis,
         "Renk": req.Renk,
         "Kimden": req.Kimden,
-        "Garanti Durumu": req.Garanti_Durumu,
-        "Silindir Sayısı": str(req.Silindir_Sayisi or "4"),
-        "Koltuk Sayısı": str(req.Koltuk_Sayisi or "5"),
+        "Garanti_Durumu": garanti_durumu,
+        "Silindir_Sayisi": str(silindir_sayisi),
+        "Koltuk_Sayisi": str(koltuk_sayisi),
         "Boya_Durumu": hasar["Boya_Durumu"],
-        "Yıl": req.Yil,
+        "Yil": req.Yil,
         "Kilometre": req.Kilometre,
         "Motor_Hacmi_cc": motor_hacmi,
         "Motor_Gucu_hp": motor_gucu,
@@ -577,6 +610,8 @@ def predict(req: CarFeaturesRequest, request: Request):
         "Has_Boya": hasar["Has_Boya"],
         "Has_Degisen": hasar["Has_Degisen"],
         "Has_Tramer": hasar["Has_Tramer"],
+        "Arac_Yasi": arac_yasi,
+        "Yillik_Ortalama_KM": yillik_km,
         "kaput": hasar["kaput"],
         "tavan": hasar["tavan"],
         "bagaj": hasar["bagaj"],
