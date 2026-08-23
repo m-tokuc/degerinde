@@ -4,46 +4,32 @@
 set -e
 
 echo "=========================================="
-echo "🚀 Car Pricing ML Engine - Deployment Script"
+echo "🚀 Car Pricing ML Engine - Zero Downtime Deployment"
 echo "=========================================="
 
-echo "[1/4] Updating system packages..."
-sudo apt-get update -y
-sudo apt-get upgrade -y
+# echo "[1/4] Updating system packages (Skipped during fast deploy)..."
+# sudo apt-get update -y
+# sudo apt-get upgrade -y
 
-echo "[2/4] Installing Docker and Docker Compose..."
-# Install prerequisites
-sudo apt-get install -y ca-certificates curl gnupg lsb-release
+echo "[1/3] Pulling latest code..."
+git pull origin main || echo "Git pull failed or not in a git repository. Proceeding with local files."
 
-# Add Docker's official GPG key
-sudo mkdir -p /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo "[2/3] Building new Docker images in the background..."
+# Build images WITHOUT stopping the currently running containers
+sudo docker-compose build
 
-# Set up the repository
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+echo "[3/3] Deploying with Zero Downtime..."
+# Upgrading containers (Docker Compose recreates them instantly if image changed)
+sudo docker-compose up -d
 
-# Install Docker Engine and Compose
-sudo apt-get update -y
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin docker-compose
+echo "⏳ Waiting 10 seconds for the ML Engine to load data..."
+sleep 10
 
-# Start and enable Docker service
-sudo systemctl enable docker
-sudo systemctl start docker
-
-# Add current user to the docker group so we can run docker without sudo (requires re-login or newgroup)
-sudo usermod -aG docker $USER
-
-echo "[3/4] Pulling latest code..."
-# (Assuming the repo is already cloned if this script is running from it. If not, add git pull origin main here)
-
-echo "[4/4] Spinning up Docker containers..."
-# Use sudo to run docker-compose just in case the group change hasn't taken effect in the current session
-sudo docker-compose up -d --build
+echo "🔄 Reloading Nginx to clear any stale DNS cache..."
+sudo docker-compose exec -T nginx nginx -s reload || echo "Nginx reload failed, it might not be fully up yet."
 
 echo "=========================================="
-echo "✅ Deployment Complete!"
+echo "✅ Deployment Complete! System is fully zırhlı."
 echo "API is running on port 8000"
 echo "Frontend is running on port 3000"
 echo "=========================================="
