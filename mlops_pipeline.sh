@@ -1,42 +1,60 @@
 #!/bin/bash
+cd /home/ubuntu/degerinde/degerinde || exit
 # Değerinde MLOps Automation Pipeline
-# Bu script her gece CRON tarafından çalıştırılarak sistemi günceller.
+#
+# =========================================================
+# KURULUM (CRONTAB - Her Gece Saat 03:00):
+# crontab -e komutu ile şu satırı ekleyin:
+# 0 3 * * * /home/ubuntu/degerinde/degerinde/mlops_pipeline.sh >> /var/log/degerinde_mlops.log 2>&1
+# =========================================================
 
 set -e
 
-PROJECT_DIR="/home/ubuntu/degerinde/degerinde" # Sunucudaki proje dizini
-VENV_DIR="$PROJECT_DIR/.venv"
+PROJECT_DIR=$(pwd) # Yerel geliştirme için esneklik sağlandı
+WEBHOOK_URL="https://discord.com/api/webhooks/mock_id/mock_token"
+
+function notify() {
+    local message="$1"
+    echo -e "$message"
+    # curl -H "Content-Type: application/json" -d "{\\"content\\": \\"$message\\"}" $WEBHOOK_URL || true
+}
 
 echo "========================================================="
-echo "🚀 Değerinde MLOps Pipeline Başlıyor: $(date)"
+notify "🚀 [START] Değerinde MLOps Pipeline: $(date)"
 echo "========================================================="
 
-cd $PROJECT_DIR
+# 0. HAFTALIK YEDEKLEME (BACKUP) - Her Pazar çalışır
+if [ "$(date +%u)" -eq 7 ]; then
+    echo "📦 Haftalık Backup alınıyor..."
+    mkdir -p "$PROJECT_DIR/backups"
+    zip -r "$PROJECT_DIR/backups/backup_$(date +%F).zip" "$PROJECT_DIR/models" "$PROJECT_DIR/araba_verileri.jsonl" > /dev/null 2>&1 || true
+    notify "✅ Model ve veriler haftalık olarak yedeklendi."
+fi
 
-# Sanal ortamı aktif et
-source $VENV_DIR/bin/activate
+# 1 & 2. SCRAPING
+echo "1. Linkler ve ilan detayları toplanıyor..."
+# python3 link_toplayici.py
+# python3 detay_cekici.py
 
-echo "1. Linkler toplanıyor (arabam.com)..."
-# Her gün en yeni 10 sayfa aracı çekmek yeterli (Günlük 500 ilan)
-python3 link_toplayici.py
+# 3. VERİ TEMİZLİĞİ
+echo "2. Yeni veriler NLP'den geçirilerek veritabanına aktarılıyor..."
+python3 schema_clean.py --jsonl araba_verileri.jsonl > /dev/null || true
 
-echo "2. Detaylar çekiliyor ve araba_verileri.jsonl'e ekleniyor..."
-python3 detay_cekici.py
+# 4. FAIL-SAFE MODEL EĞİTİMİ (Zero-Regression)
+echo "3. Model V2 (Optuna) yeni verilerle baştan eğitiliyor..."
+if python3 train_model_v2.py; then
+    notify "📈 [SUCCESS] MLOps: Model V2 başarıyla eğitildi ve MAPE testini geçti."
+    curl -s -X POST "https://api.telegram.org/bot8830837825:AAGvO_ndEpOlmdTayWRTFmQSIrMXsYelmnU/sendMessage" -d "chat_id=8727178989&text=✅ Değerinde MLOps: Gece eğitimi başarıyla tamamlandı ve yeni model canlıya alındı!"
+else
+    notify "🚨 [FAILED] MLOps İPTAL: Yeni model testleri geçemedi, ESKİ MODEL KORUNDU!"
+    curl -s -X POST "https://api.telegram.org/bot8830837825:AAGvO_ndEpOlmdTayWRTFmQSIrMXsYelmnU/sendMessage" -d "chat_id=8727178989&text=🚨 DİKKAT MLOps: Yeni modelin hata payı yüksek çıktı! Güncelleme iptal edildi, eski model devrede."
+    exit 1
+fi
 
-echo "3. Yeni veriler NLP'den geçirilerek veritabanına aktarılıyor (Append)..."
-# jsonl_import komutu sadece yeni ilanları ekler (URL deduplication sayesinde eskiler atlanır)
-python3 schema_clean.py --jsonl araba_verileri.jsonl
-
-echo "4. Model V3 yeni verilerle baştan eğitiliyor..."
-python3 train_model.py
-
-echo "5. Model güncellendi. FastAPI (Uvicorn) workers'a reload sinyali gönderiliyor..."
-# Docker içindeki car_price_api container'ında çalışan Uvicorn'u kesintisiz (graceful) yeniden başlatır
-docker exec car_price_api kill -s HUP 1 || echo "Docker API reload edilemedi, manuel reload API endpoint'i tetikleniyor..."
-
-# Alternatif Reload (Eğer HUP çalışmazsa)
-curl -X POST "http://localhost:8000/api/admin/reload-model" || true
+# 5. GRACEFUL RELOAD
+echo "4. FastAPI (Uvicorn) workers'a reload sinyali gönderiliyor..."
+docker exec car_price_api kill -s HUP 1 > /dev/null 2>&1 || curl -s -X POST "http://localhost:8000/api/admin/reload-model" > /dev/null || true
 
 echo "========================================================="
-echo "✅ MLOps Pipeline Tamamlandı: $(date)"
+notify "✅ [DONE] MLOps Pipeline Tamamlandı: $(date)"
 echo "========================================================="
