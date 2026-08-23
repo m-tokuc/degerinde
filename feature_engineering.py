@@ -20,7 +20,7 @@ CURRENT_YEAR = 2026
 HIGH_CARDINALITY_CATS = ["Marka", "Seri", "Model", "Kasa_Tipi"]
 LOW_CARDINALITY_CATS = [
     "Vites_Tipi", "Yakit_Tipi", "Cekis", "Renk", "Kimden", 
-    "Garanti_Durumu", "Silindir_Sayisi", "Koltuk_Sayisi", "Boya_Durumu"
+    "Garanti_Durumu", "Silindir_Sayisi", "Koltuk_Sayisi"
 ]
 NUMERICAL_FEATURES = [
     "Arac_Yasi", "Kilometre", "Yillik_Ortalama_KM", "Motor_Hacmi_cc", 
@@ -116,15 +116,29 @@ def basic_numeric_cleaning(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 def reject_outliers(df: pd.DataFrame) -> pd.DataFrame:
-    """Removes absurdly low or high prices, out of bounds years, etc."""
+    """Removes absurdly low or high prices, out of bounds years, and uses Isolation Forest for anomalies."""
+    from sklearn.ensemble import IsolationForest
+    
+    # Base Hard Limits
     df = df[df["Fiyat"].between(50_000, 100_000_000)]
     df = df[df["Kilometre"].between(0, 1_000_000)]
     df = df[df["Yıl"].between(1990, CURRENT_YEAR)]
     df = df[df["Marka"].notna() & (df["Marka"] != "Diğer")]
     
-    Q1 = df["Fiyat"].quantile(0.01)
-    Q3 = df["Fiyat"].quantile(0.99)
-    df = df[df["Fiyat"].between(Q1, Q3)]
+    # Ensure no NaN in critical features before Isolation Forest
+    temp_df = df[["Fiyat", "Kilometre", "Yıl"]].dropna()
+    
+    if len(temp_df) > 1000:
+        # Isolation Forest ile akıllı filtreleme (Maksimum %5 veri kaybı)
+        iso = IsolationForest(contamination=0.05, random_state=42, n_jobs=-1)
+        preds = iso.fit_predict(temp_df)
+        # Keep only inliers (1)
+        df = df.loc[temp_df.index[preds == 1]]
+    else:
+        # Fallback to basic quantile if dataset is too small
+        Q1 = df["Fiyat"].quantile(0.01)
+        Q3 = df["Fiyat"].quantile(0.99)
+        df = df[df["Fiyat"].between(Q1, Q3)]
     
     return df
 

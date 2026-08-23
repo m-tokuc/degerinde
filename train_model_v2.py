@@ -66,47 +66,43 @@ def create_price_bins(y: pd.Series) -> pd.Series:
     """Bin prices for Stratified K-Fold (so each fold has a mix of cheap and expensive cars)."""
     return pd.qcut(y, q=10, labels=False, duplicates='drop')
 
-def objective(trial, X, y, preprocessor):
-    """Optuna objective function for tuning XGBoost with cross-validation."""
+def objective(trial, X_train, y_train, X_val, y_val, preprocessor):
+    """Optuna objective function for tuning XGBoost with early stopping."""
     params = {
-        "n_estimators": trial.suggest_int("n_estimators", 300, 1000, step=100),
-        "max_depth": trial.suggest_int("max_depth", 5, 12),
-        "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.1, log=True),
-        "subsample": trial.suggest_float("subsample", 0.6, 1.0),
-        "colsample_bytree": trial.suggest_float("colsample_bytree", 0.6, 1.0),
-        "min_child_weight": trial.suggest_int("min_child_weight", 1, 10),
-        "reg_alpha": trial.suggest_float("reg_alpha", 1e-8, 1.0, log=True),
-        "reg_lambda": trial.suggest_float("reg_lambda", 1e-8, 1.0, log=True),
+        "n_estimators": trial.suggest_int("n_estimators", 500, 1500, step=100),
+        "max_depth": trial.suggest_int("max_depth", 6, 10),
+        "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.05, log=True),
+        "subsample": trial.suggest_float("subsample", 0.7, 0.95),
+        "colsample_bytree": trial.suggest_float("colsample_bytree", 0.7, 0.95),
+        "min_child_weight": trial.suggest_int("min_child_weight", 3, 10),
+        "reg_alpha": trial.suggest_float("reg_alpha", 1e-5, 0.1, log=True),
+        "reg_lambda": trial.suggest_float("reg_lambda", 1e-5, 0.1, log=True),
         "random_state": RANDOM_STATE,
         "n_jobs": -1,
         "verbosity": 0,
         "enable_categorical": False
     }
 
-    # Transform data once per trial is faster than inside CV
-    X_trans = preprocessor.fit_transform(X, y)
-    
-    # We must assume the output columns order is: TargetCats + OrdinalCats + NumCats
     out_features = HIGH_CARDINALITY_CATS + LOW_CARDINALITY_CATS + NUMERICAL_FEATURES
     monotone_constraints = get_monotonic_constraints(out_features)
     params["monotone_constraints"] = monotone_constraints
 
-    skf = StratifiedKFold(n_splits=3, shuffle=True, random_state=RANDOM_STATE)
-    price_bins = create_price_bins(y)
+    params["early_stopping_rounds"] = 50
+
+    model = xgb.XGBRegressor(**params)
     
-    cv_scores = []
+    # We need to transform data for the regressor since we are skipping the pipeline for eval_set
+    X_t_train = preprocessor.transform(X_train)
+    X_t_val = preprocessor.transform(X_val)
+
+    model.fit(
+        X_t_train, y_train,
+        eval_set=[(X_t_val, y_val)],
+        verbose=False
+    )
     
-    for train_idx, val_idx in skf.split(X_trans, price_bins):
-        X_train, X_val = X_trans[train_idx], X_trans[val_idx]
-        y_train, y_val = y.iloc[train_idx], y.iloc[val_idx]
-        
-        model = xgb.XGBRegressor(**params)
-        model.fit(X_train, y_train)
-        
-        preds = model.predict(X_val)
-        cv_scores.append(mape(y_val, preds))
-        
-    return np.mean(cv_scores)
+    preds = model.predict(X_t_val)
+    return mape(y_val, preds)
 
 def evaluate_segments(y_true: pd.Series, y_pred: np.ndarray):
     """Calculates MAE and MAPE for Low, Mid, and High-end segments based on percentiles."""
@@ -129,6 +125,7 @@ def evaluate_segments(y_true: pd.Series, y_pred: np.ndarray):
         print(f"  {seg_name:<25} n={mask.sum():<6} MAE={seg_mae:>10,.0f} TL  MAPE={seg_mape:>6.2f}%")
 
 def train():
+    import sys
     print("=" * 60)
     print("  DEĞERİNDE — ARAÇ FİYAT TAHMİN MODELİ v2 (ENTERPRISE)")
     print("=" * 60)
@@ -151,14 +148,21 @@ def train():
     X_train, X_test = X.iloc[train_idx].copy(), X.iloc[test_idx].copy()
     y_train, y_test = y.iloc[train_idx].copy(), y.iloc[test_idx].copy()
     
-    print(f"   Train: {len(X_train):,}, Test: {len(X_test):,}")
+    # Split train again to get a small validation set for Optuna early stopping
+    train_bins = create_price_bins(y_train)
+    skf_val = StratifiedKFold(n_splits=5, shuffle=True, random_state=RANDOM_STATE)
+    t_idx, v_idx = next(skf_val.split(X_train, train_bins))
+    X_t, X_v = X_train.iloc[t_idx].copy(), X_train.iloc[v_idx].copy()
+    y_t, y_v = y_train.iloc[t_idx].copy(), y_train.iloc[v_idx].copy()
+    
+    print(f"   Train: {len(X_t):,}, Val: {len(X_v):,}, Test: {len(X_test):,}")
 
     preprocessor = build_ml_preprocessor()
+    preprocessor.fit(X_train, y_train) # Fit preprocessor on full train data
     
     print(f"\\n3. Optuna Hyperparameter Tuning ({N_TRIALS} Trials)...")
     study = optuna.create_study(direction="minimize")
-    # For tuning, we can use the training set
-    study.optimize(lambda trial: objective(trial, X_train, y_train, preprocessor), n_trials=N_TRIALS)
+    study.optimize(lambda trial: objective(trial, X_t, y_t, X_v, y_v, preprocessor), n_trials=N_TRIALS)
     
     print("   Best parameters:")
     for k, v in study.best_params.items():
@@ -174,13 +178,22 @@ def train():
     monotone_constraints = get_monotonic_constraints(out_features)
     best_params["monotone_constraints"] = monotone_constraints
     
+    # For the final model, we can still use early stopping against the test set
+    best_params["early_stopping_rounds"] = 50
     regressor = xgb.XGBRegressor(**best_params)
+    X_train_trans = preprocessor.transform(X_train)
+    X_test_trans = preprocessor.transform(X_test)
+    
+    regressor.fit(
+        X_train_trans, y_train,
+        eval_set=[(X_test_trans, y_test)],
+        verbose=False
+    )
+    
     pipeline = Pipeline([
         ("preprocessor", preprocessor), 
         ("regressor", regressor)
     ])
-    
-    pipeline.fit(X_train, y_train)
     
     print("\\n5. Dürüst değerlendirme (Test Set)...")
     y_pred = pipeline.predict(X_test)
@@ -202,7 +215,7 @@ def train():
 
     print("\\n6. Feature importances:")
     try:
-        importances = pipeline.named_steps["regressor"].feature_importances_
+        importances = regressor.feature_importances_
         fi_df = pd.DataFrame({
             "feature": out_features,
             "importance": importances,
@@ -212,6 +225,20 @@ def train():
             print(f"  {row['feature']:<22} {row['importance']:.4f}  {bar}")
     except Exception as e:
         print(f"  (desteklenmiyor: {e})")
+        
+    # FAIL-SAFE: Check against old model before saving
+    old_mape = 100.0
+    if os.path.exists(MODEL_PATH):
+        try:
+            old_data = joblib.load(MODEL_PATH)
+            old_mape = float(old_data.get("mape", 100.0))
+        except Exception:
+            pass
+
+    print(f"\\nFail-Safe Check: Eski Hata (MAPE) = {old_mape:.2f}%, Yeni Hata = {mape_v:.2f}%")
+    if mape_v > old_mape:
+        print("🚨 EĞİTİM BAŞARISIZ: Yeni model eskisi kadar iyi değil. Değişiklikler iptal ediliyor!")
+        sys.exit(1)
 
     model_data = {
         "model": pipeline,
@@ -225,9 +252,11 @@ def train():
         "rmse": float(rmse),
         "mape": float(mape_v),
         "mdape": float(mdape_v),
-        "version": 6,
+        "version": 7,
         "monotone_constraints": monotone_constraints,
     }
+    
+    os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
     joblib.dump(model_data, MODEL_PATH)
     print(f"\\n✅ Model '{MODEL_PATH}' kaydedildi. R²={r2:.4f} MAPE={mape_v:.2f}% MAE={mae:,.0f}")
 
