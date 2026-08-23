@@ -26,4 +26,4 @@ COPY . .
 EXPOSE 8000
 
 # Start the FastAPI server using Gunicorn for multi-process concurrency
-CMD ["gunicorn", "main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "--timeout", "120"]
+CMD ["gunicorn", "main:app", "-k", "uvicorn.workers.UvicornWorker", "--workers", "1", "--timeout", "120", "--bind", "0.0.0.0:8000"]
