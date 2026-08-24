@@ -65,3 +65,11 @@ Güvenlik tarafında, FastAPI backend'imize `slowapi` entegrasyonu ile dakikada 
 Bu hafta, projemizi temel bir prototipten production ortamına hazır, kurumsal bir B2B ürününe dönüştürmek ana hedefimizdi. Arayüzü sadeleştirerek kullanıcıdan istenen karmaşık araç özelliklerini (motor hacmi, silindir sayısı vb.) arka planda otomatik tamamlayan bir API servisi devreye aldık. Kurumsal kullanıcılar için detaylı PDF ekspertiz raporu oluşturma özelliğini yayına aldık.
 
 Sistem güvenliğini ve model kararlılığını artırmak için backend tarafında Pydantic doğrulama sınırlarını katılaştırdık; böylece hatalı verilerin modeli çökertmesini engelledik. Canlı sunucumuzu (Oracle) Docker iç ağıyla izole edip, Nginx ve SSL ile dışarıya güvenli şekilde açtık. Veri toplama botlarımızı iki sunucu üzerinden dağıtık çalışacak şekilde güncelledik. Önümüzdeki hafta, toplanan yeni ve kapsamlı verilerle yapay zeka modelimizi eğitmeye odaklanacağız.
+
+---
+
+## 📅 24 Ağustos Raporu
+
+Hafta sonu boyunca veri toplama botlarını hem lokalde hem de Oracle sunucusunda kesintisiz çalıştırdım. Sunucunun performansını, Nginx ve Gunicorn loglarını takip ederek herhangi bir bellek sızıntısı veya 502/504 hatası olup olmadığını kontrol ettim. Ayrıca MLOps otomasyon betiğini (cron job ve venv entegrasyonu) arka planda test ederek sistemin her gece sıfır müdahaleyle yeni model eğitebilecek kararlılıkta olduğundan emin oldum.
+
+Bugün ise sistemin genel kararlılığını ölçmek için son QA ve entegrasyon testlerini (`doomsday_test.py`, `qa_stress_test.py` gibi betiklerle) koştum. Ardından sitenin canlı linkini arkadaşlarıma atıp farklı telefon ve tarayıcılardan arayüzü, dinamik formları ve PDF raporu indirme butonunu test ettirdim. Gelen geri bildirimlere göre ufak tefek görsel kaymaları ve state hatalarını giderdim. Sistem şu an canlıda tamamen stabil ve sorunsuz bir şekilde yayında.
