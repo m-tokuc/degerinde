@@ -1,6 +1,14 @@
 #!/bin/bash
 cd /home/ubuntu/degerinde/degerinde || exit
 source /home/ubuntu/degerinde/degerinde/.env
+
+# Sanal ortam aktivasyonu (Cron job'lar sistem Python'u yerine bunu kullanacak)
+if [ -d "venv" ]; then
+    source venv/bin/activate
+elif [ -d ".venv" ]; then
+    source .venv/bin/activate
+fi
+
 # Değerinde MLOps Automation Pipeline
 #
 # =========================================================
