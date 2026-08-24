@@ -1,5 +1,6 @@
 #!/bin/bash
 cd /home/ubuntu/degerinde/degerinde || exit
+source /home/ubuntu/degerinde/degerinde/.env
 # Değerinde MLOps Automation Pipeline
 #
 # =========================================================
@@ -44,10 +45,10 @@ python3 schema_clean.py --jsonl araba_verileri.jsonl > /dev/null || true
 echo "3. Model V2 (Optuna) yeni verilerle baştan eğitiliyor..."
 if python3 train_model_v2.py; then
     notify "📈 [SUCCESS] MLOps: Model V2 başarıyla eğitildi ve MAPE testini geçti."
-    curl -s -X POST "https://api.telegram.org/bot8830837825:AAGvO_ndEpOlmdTayWRTFmQSIrMXsYelmnU/sendMessage" -d "chat_id=8727178989&text=✅ Değerinde MLOps: Gece eğitimi başarıyla tamamlandı ve yeni model canlıya alındı!"
+    curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" -d "chat_id=8727178989&text=✅ Değerinde MLOps: Gece eğitimi başarıyla tamamlandı ve yeni model canlıya alındı!"
 else
     notify "🚨 [FAILED] MLOps İPTAL: Yeni model testleri geçemedi, ESKİ MODEL KORUNDU!"
-    curl -s -X POST "https://api.telegram.org/bot8830837825:AAGvO_ndEpOlmdTayWRTFmQSIrMXsYelmnU/sendMessage" -d "chat_id=8727178989&text=🚨 DİKKAT MLOps: Yeni modelin hata payı yüksek çıktı! Güncelleme iptal edildi, eski model devrede."
+    curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" -d "chat_id=8727178989&text=🚨 DİKKAT MLOps: Yeni modelin hata payı yüksek çıktı! Güncelleme iptal edildi, eski model devrede."
     exit 1
 fi
 
