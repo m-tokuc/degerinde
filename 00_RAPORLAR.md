@@ -73,3 +73,9 @@ Sistem güvenliğini ve model kararlılığını artırmak için backend tarafı
 Hafta sonu boyunca veri toplama botlarını hem lokalde hem de Oracle sunucusunda kesintisiz çalıştırdım. Sunucunun performansını, Nginx ve Gunicorn loglarını takip ederek herhangi bir bellek sızıntısı veya 502/504 hatası olup olmadığını kontrol ettim. Ayrıca MLOps otomasyon betiğini (cron job ve venv entegrasyonu) arka planda test ederek sistemin her gece sıfır müdahaleyle yeni model eğitebilecek kararlılıkta olduğundan emin oldum.
 
 Bugün ise sistemin genel kararlılığını ölçmek için son QA ve entegrasyon testlerini (`doomsday_test.py`, `qa_stress_test.py` gibi betiklerle) koştum. Ardından sitenin canlı linkini arkadaşlarıma atıp farklı telefon ve tarayıcılardan arayüzü, dinamik formları ve PDF raporu indirme butonunu test ettirdim. Gelen geri bildirimlere göre ufak tefek görsel kaymaları ve state hatalarını giderdim. Sistem şu an canlıda tamamen stabil ve sorunsuz bir şekilde yayında.
+
+---
+
+## 📅 25 Ağustos Raporu
+
+Bugün genel olarak sistem üzerinde son manuel testleri gerçekleştirdim. Arayüzün farklı senaryolarda (hatalı veri girişleri, eksik ekspertiz bilgileri vb.) nasıl tepki verdiğini ve hata mesajlarını kontrol ettim. Ayrıca resmi staj raporunun taslağını oluşturarak hazırlıklarına başladım.
