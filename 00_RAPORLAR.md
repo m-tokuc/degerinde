@@ -79,3 +79,9 @@ Bugün ise sistemin genel kararlılığını ölçmek için son QA ve entegrasyo
 ## 📅 25 Ağustos Raporu
 
 Bugün genel olarak sistem üzerinde son manuel testleri gerçekleştirdim. Arayüzün farklı senaryolarda (hatalı veri girişleri, eksik ekspertiz bilgileri vb.) nasıl tepki verdiğini ve hata mesajlarını kontrol ettim. Ayrıca resmi staj raporunun taslağını oluşturarak hazırlıklarına başladım.
+
+---
+
+## 📅 26 Ağustos Raporu
+
+Bugün resmi staj raporunun hazırlıklarını tamamladım ve raporu hazır hale getirdim. Modelin en son hangi veri boyutuyla eğitildiğine dair veritabanı analizlerini gerçekleştirdim.
