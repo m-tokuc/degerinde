@@ -34,6 +34,8 @@ Bugün dünden planladığım gibi projenin domain ve sunucu yönlendirme işler
 
 Yarın model ve arayüz tarafında 13 parçalı ekspertiz (boya/değişen) durumlarını eklemeye odaklanacağım.
 
+---
+
 ## 📅 19 Ağustos Raporu
 
 Bugün ağırlıklı olarak backend ve arayüz entegrasyonundaki kritik hataları çözmeye odaklandım. Frontend tarafında 13 parçalı ekspertiz (boya/değişen) seçim ekranını sisteme bağladım, mobil görünümlerdeki grid kaymalarını düzelttim ve olası API kopmalarında sayfanın çökmesini engellemek için arayüze hata bildirim (toast) mekanizması ekledim. Tek kalan seçeneklerin otomatik seçilmesi özelliğindeki boş veri gönderme sorununu da hallettim. Backend tarafında ise yapay zeka modelinin tahmin sırasında Türkçe karakterli sütun isimleri yüzünden patlamasına sebep olan uyuşmazlığı giderdim. Ayrıca veritabanına fiyat tahmini loglanırken oluşan session hatasını çözdüm. Docker-compose tarafındaki inatçı güncelleme sorunlarından kurtulmak için sistemi sıfırdan temizleyip yeniden ayağa kaldırdım. Şu an arayüz ile yapay zeka modeli tam entegre, sorunsuz ve hızlı bir şekilde çalışıyor.
@@ -84,4 +86,10 @@ Bugün genel olarak sistem üzerinde son manuel testleri gerçekleştirdim. Aray
 
 ## 📅 26 Ağustos Raporu
 
-Bugün resmi staj raporunun hazırlıklarını tamamladım ve raporu hazır hale getirdim. Modelin en son hangi veri boyutuyla eğitildiğine dair veritabanı analizlerini gerçekleştirdim.
+Bugün staj raporunun hazırlıklarını tamamladım ve raporu hazır hale getirdim. Modelin en son hangi veri boyutuyla eğitildiğine dair veritabanı analizlerini gerçekleştirdim.
+
+---
+
+## 📅 27 Ağustos Raporu
+
+Bugün projenin kullanıcı arayüzü (UX) detaylarını iyileştirmeye ve entegrasyon pürüzlerini tamamen yok etmeye odaklandım. Frontend tarafındaki SearchableCombobox bileşenini yeniledim; marka seçimlerinde Google Favicon API kullanarak logoların temiz gelmesini sağladım, logosu bulunamayanlar için harf temelli dinamik avatarlar ekledim. Model fiyat tahmini esnasında `__sklearn_tags__` hatası yüzünden patlıyordu; sorunun scikit-learn sürüm uyumsuzluğu olduğunu tespit edip modeli eğiten eski sürüme (1.5.2) düşürerek backend'in hatasız tahmin yapmasını sağladım. Formlardaki renk seçim mantığını dinamik (modele bağlı azalan liste) yapıdan, UX'i bozmamak adına sabit, sade ve renkli kutucuklu (swatch) bir yapıya geçirdim. Şu an model tahmin yapıyor, UI kusursuz ve 404 hataları tamamen temizlendi.
