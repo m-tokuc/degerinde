@@ -1,34 +1,32 @@
 import React from 'react';
 
+const getFillClass = (state) => {
+  switch (state) {
+    case 1: return "fill-amber-200/90 hover:fill-amber-300/90 dark:fill-amber-300/80 dark:hover:fill-amber-200/80";
+    case 2: return "fill-orange-300/90 hover:fill-orange-400/90 dark:fill-orange-400/80 dark:hover:fill-orange-300/80";
+    case 3: return "fill-rose-400/90 hover:fill-rose-500/90 dark:fill-rose-500/80 dark:hover:fill-rose-400/80";
+    // If 0 or undefined, return the default gray color the SVG came with
+    default: return "fill-[#d5dee6] hover:fill-[#c4d0da] dark:fill-slate-700 dark:hover:fill-slate-600";
+  }
+};
+
+const InteractivePart = ({ id, d, defaultClass = "", pathId, appraisal, onToggle }) => {
+  const state = appraisal[id] || 0;
+  const fillClass = getFillClass(state);
+
+  return (
+    <path 
+      id={pathId}
+      d={d} 
+      onClick={() => onToggle(id)}
+      className={`cursor-pointer transition-colors duration-200 ${fillClass} ${defaultClass}`}
+      fillRule="evenodd"
+      clipRule="evenodd"
+    />
+  );
+};
+
 export default function CarDamageSVG({ appraisal, onToggle }) {
-  const getFillClass = (state) => {
-    switch (state) {
-      case 1: return "fill-amber-200/90 hover:fill-amber-300/90 dark:fill-amber-300/80 dark:hover:fill-amber-200/80";
-      case 2: return "fill-orange-300/90 hover:fill-orange-400/90 dark:fill-orange-400/80 dark:hover:fill-orange-300/80";
-      case 3: return "fill-rose-400/90 hover:fill-rose-500/90 dark:fill-rose-500/80 dark:hover:fill-rose-400/80";
-      // If 0 or undefined, return the default gray color the SVG came with
-      default: return "fill-[#d5dee6] hover:fill-[#c4d0da] dark:fill-slate-700 dark:hover:fill-slate-600";
-    }
-  };
-
-  // The original SVG paths used rgb(var(--kipper-legend-original)) for default color
-  // We will override this dynamically using Tailwind classes for interactive parts.
-  const InteractivePart = ({ id, d, defaultClass = "", pathId }) => {
-    const state = appraisal[id] || 0;
-    const fillClass = getFillClass(state);
-
-    return (
-      <path 
-        id={pathId}
-        d={d} 
-        onClick={() => onToggle(id)}
-        className={`cursor-pointer transition-colors duration-200 ${fillClass} ${defaultClass}`}
-        fillRule="evenodd"
-        clipRule="evenodd"
-      />
-    );
-  };
-
   return (
     <div className="w-full max-w-[400px] mx-auto p-2 bg-white dark:bg-slate-900 rounded-3xl flex justify-center items-center transition-colors duration-200">
       <svg viewBox="0 0 217 289" className="w-full h-auto max-h-[500px] dark:opacity-90 transition-opacity" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -36,25 +34,25 @@ export default function CarDamageSVG({ appraisal, onToggle }) {
         {/* ================= INTERACTIVE PARTS ================= */}
         
         {/* Hood (HD) */}
-        <InteractivePart 
+        <InteractivePart appraisal={appraisal} onToggle={onToggle} 
           id="kaput" pathId="HD"
           d="M70.5089 92.7583C70.1322 78.5666 70.0945 47.8471 72.958 38.5031C77.479 35.3382 82.7618 33.4167 84.834 32.6631C85.9016 32.1608 88.2169 30.9677 88.2169 29.4606C88.2169 28.8577 88.8449 28.707 89.1588 28.707H89.3472V30.2141C93.8057 29.7118 103.627 28.707 107.244 28.707H108.875H108.939H110.571C110.571 28.707 119.494 28.707 128.467 30.2141V28.707H128.655C128.969 28.707 129.597 28.8577 129.597 29.4606C129.597 30.9677 131.732 32.3492 132.799 32.8515C133.33 33.1013 134.109 33.3935 135.052 33.747C137.664 34.7266 141.533 36.1774 144.855 38.5031C147.718 47.8471 147.681 78.5666 147.304 92.7583C131.085 83.4473 115.017 82.0926 108.939 82.5802V82.5855C108.929 82.5846 108.918 82.5837 108.907 82.5828C108.897 82.5837 108.886 82.5846 108.875 82.5855V82.5802C102.798 82.0926 86.7284 83.4473 70.5089 92.7583Z" 
         />
         
         {/* Roof (RF) */}
-        <InteractivePart 
+        <InteractivePart appraisal={appraisal} onToggle={onToggle} 
           id="tavan" pathId="RF"
           d="M137.012 131.57C135.811 137.62 133.826 159.5 134.736 199.123C133.739 199.361 132.795 199.588 131.898 199.803C120.44 202.553 116.613 203.471 106.305 203.471V203.461C99.2334 203.468 94.9139 202.336 86.5466 200.144C85.2089 199.794 83.7677 199.416 82.1953 199.012C83.0996 159.526 80.9394 137.598 79.7463 131.57C90.326 127.418 102.185 126.43 108.397 126.438C114.622 126.43 126.384 127.411 137.012 131.57Z" 
         />
         
         {/* Trunk (RH) */}
-        <InteractivePart 
+        <InteractivePart appraisal={appraisal} onToggle={onToggle} 
           id="bagaj" pathId="RH"
           d="M77.1096 231.41L77.4863 256.654C82.1331 258.161 94.3654 261.25 108.381 260.798C122.397 261.25 134.629 258.161 139.276 256.654L139.653 231.41C127.446 239.699 113.846 240.264 108.382 240.076V240.076C108.381 240.076 108.381 240.076 108.381 240.076C108.381 240.076 108.381 240.076 108.38 240.076V240.076C102.916 240.264 89.3161 239.699 77.1096 231.41Z" 
         />
 
         {/* Front Bumper (FB) */}
-        <InteractivePart 
+        <InteractivePart appraisal={appraisal} onToggle={onToggle} 
           id="on_tampon" pathId="FB"
           d="M147 19.0287H149.449C148.821 14.5702 147.452 5.3142 147 3.95782L146.985 3.91164C146.421 2.2203 145.658 -0.071424 143.044 0.00170727C140.744 0.00170727 139.733 0.431748 138.887 0.791659C138.764 0.844374 138.643 0.895585 138.523 0.943719H108.381V0.94374H78.6141C78.4937 0.895606 78.3734 0.844396 78.2495 0.791681C77.4038 0.43177 76.3933 0.00172803 74.0928 0.00172803C71.4793 -0.0714035 70.7156 2.22033 70.1521 3.91168C70.1469 3.92712 70.1418 3.9425 70.1367 3.95784C69.6846 5.31422 68.3156 14.5703 67.6877 19.0287H70.1367C72.0959 15.2609 75.0975 14.4447 76.3534 14.5075C77.6094 14.5703 81.0634 14.5598 85.2076 14.5075C90.5226 14.4406 91.0004 15.3797 91.3274 16.0225C91.3597 16.086 91.3905 16.1466 91.4243 16.203L92.743 15.4495V8.10242C92.743 5.84178 94.2501 5.6534 95.0037 5.84178H108.756L122.133 5.84176C122.887 5.65337 124.394 5.84176 124.394 8.1024V15.4495L125.713 16.203C125.746 16.1466 125.777 16.086 125.81 16.0225C126.137 15.3797 126.614 14.4406 131.929 14.5075C136.074 14.5597 139.528 14.5703 140.783 14.5075C142.039 14.4447 145.041 15.2609 147 19.0287Z" 
         />
@@ -69,13 +67,13 @@ export default function CarDamageSVG({ appraisal, onToggle }) {
         />
 
         {/* Right Front Wing/Fender (RFW) */}
-        <InteractivePart 
+        <InteractivePart appraisal={appraisal} onToggle={onToggle} 
           id="sag_on_camurluk" pathId="RFW"
           d="M184.462 38.0547C182.578 38.1803 178.471 38.6575 177.115 39.5618C175.419 40.6921 172.405 43.5179 171.275 48.9811C170.526 52.5993 169.199 60.0186 168.279 65.1643C167.81 67.7882 167.446 69.8209 167.319 70.4571C166.942 72.341 166.189 77.4274 166 79.4997C165.849 81.1575 164.933 87.0979 164.493 89.8609C164.242 90.4261 163.702 91.6317 163.551 91.9331C163.4 92.2346 164.367 94.1938 164.87 95.1357C165.058 97.3963 165.623 102.294 166.377 103.801C166.829 105.61 167.193 106.69 167.319 107.004C169.651 106.866 172.009 106.646 174.414 106.423C179.651 105.936 185.117 105.427 191.055 105.685C190.968 105.448 190.881 105.2 190.795 104.941C180.712 102.032 173.332 92.6719 173.332 81.5753C173.332 73.1169 177.62 65.6678 184.125 61.3152C184.111 61.1575 184.098 61.0022 184.085 60.8494L184.462 38.0547Z" 
         />
 
         {/* Right Rear Wing/Fender (RRW) */}
-        <InteractivePart 
+        <InteractivePart appraisal={appraisal} onToggle={onToggle} 
           id="sag_arka_camurluk" pathId="RRW"
           d="M144.133 202.138L145.452 200.254C151.292 204.587 165.534 213.328 174.275 213.629C172.956 220.411 172.014 233.221 180.303 239.627V266.754C179.55 266.754 177.59 266.792 175.782 266.943C173.973 267.093 170.256 265.498 168.623 264.682C166.991 264.305 163.612 263.514 163.16 263.363C162.595 263.175 161.465 262.233 161.465 260.914C161.465 260.759 161.467 260.432 161.471 259.973C161.498 256.536 161.586 245.632 161.088 242.641C160.523 239.25 159.957 236.424 153.364 227.193C148.466 216.078 144.133 204.587 144.133 202.138ZM161.65 210.052C158.008 208.231 150.008 203.986 147.145 201.574C148.84 205.719 154.303 216.457 161.65 222.297V210.052Z" 
         />
@@ -95,13 +93,13 @@ export default function CarDamageSVG({ appraisal, onToggle }) {
         />
 
         {/* Left Front Wing/Fender (LFW) */}
-        <InteractivePart 
+        <InteractivePart appraisal={appraisal} onToggle={onToggle} 
           id="sol_on_camurluk" pathId="LFW"
           d="M32.0509 38.0547C33.9348 38.1803 38.0416 38.6575 39.398 39.5618C41.0934 40.6921 44.1076 43.5179 45.2379 48.9811C45.9865 52.5993 47.3136 60.0186 48.2339 65.1643C48.7032 67.7882 49.0668 69.8209 49.1941 70.4571C49.5708 72.341 50.3244 77.4274 50.5128 79.4997C50.6635 81.1575 51.5803 87.0979 52.0198 89.8609C52.271 90.4261 52.8111 91.6317 52.9618 91.9331C53.1125 92.2346 52.1454 94.1938 51.6431 95.1357C51.4549 97.3963 50.8901 102.294 50.1363 103.801C49.6842 105.61 49.3197 106.69 49.1941 107.004C46.8616 106.866 44.5042 106.646 42.0985 106.423C36.8617 105.936 31.3956 105.427 25.4577 105.685C25.5448 105.448 25.6315 105.2 25.7177 104.941C35.8009 102.032 43.1807 92.6719 43.1807 81.5753C43.1807 73.1169 38.8929 65.6678 32.3884 61.3152C32.4019 61.1575 32.4151 61.0022 32.428 60.8494L32.0509 38.0547Z" 
         />
 
         {/* Left Rear Wing/Fender (LRW) */}
-        <InteractivePart 
+        <InteractivePart appraisal={appraisal} onToggle={onToggle} 
           id="sol_arka_camurluk" pathId="LRW"
           d="M72.38 202.138L71.0613 200.254C65.2214 204.587 50.9794 213.328 42.2383 213.629C43.557 220.411 44.4989 233.221 36.2099 239.627V266.754C36.9634 266.754 38.9227 266.792 40.7312 266.943C42.5397 267.093 46.2572 265.498 47.8898 264.682C49.5225 264.305 52.9009 263.514 53.353 263.363C53.9182 263.175 55.0485 262.233 55.0485 260.914C55.0485 260.759 55.0459 260.432 55.0422 259.973C55.0145 256.536 54.9268 245.632 55.4253 242.641C55.9905 239.25 56.5556 236.424 63.1491 227.193C68.0472 216.078 72.38 204.587 72.38 202.138ZM54.8626 210.052C58.5047 208.231 66.5049 203.986 69.3683 201.574C67.6729 205.719 62.2097 216.457 54.8626 222.297V210.052Z" 
         />

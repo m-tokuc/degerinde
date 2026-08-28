@@ -88,10 +88,6 @@ export default function Home() {
     "Yapay zeka fiyatlandırıyor..."
   ];
 
-  // Fetch initial options (brands)
-  useEffect(() => {
-    fetchOptions({});
-  }, []);
 
   const fetchOptions = async (currentFilters) => {
     setLoadingOptions(true);
@@ -172,6 +168,12 @@ export default function Home() {
       setLoadingOptions(false);
     }
   };
+
+  // Fetch initial options (brands)
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchOptions({});
+  }, []);
 
   const handleChange = async (e) => {
     const { name, value } = e.target;
@@ -733,8 +735,9 @@ export default function Home() {
                     const range = maxVal - minVal || 1;
                     
                     return (
-                      <div className="relative h-64 w-full flex px-2 pb-14 pt-8 border-b border-slate-200 dark:border-slate-800">
-                        {wData.map((d, i) => {
+                      <div className="w-full overflow-x-auto pb-4 -mx-2 px-2">
+                        <div className="relative h-64 min-w-[360px] flex px-2 pb-14 pt-8 border-b border-slate-200 dark:border-slate-800">
+                          {wData.map((d, i) => {
                           const bottomPct = ((Math.min(d.start, d.end) - minVal) / range) * 100;
                           const heightPct = Math.max(((Math.abs(d.end - d.start)) / range) * 100, 3); // Increased minimum height for small values
                           const isPositive = d.val >= 0;
@@ -769,6 +772,7 @@ export default function Home() {
                             </div>
                           );
                         })}
+                        </div>
                       </div>
                     );
                   })()}
