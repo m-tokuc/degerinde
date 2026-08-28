@@ -485,10 +485,17 @@ export default function Home() {
                   {loadingOptions && (!options.Yakit_Tipi || options.Yakit_Tipi.length === 0) ? (
                     <div className="w-full h-[46px] bg-slate-200 dark:bg-slate-800 animate-pulse rounded-lg"></div>
                   ) : (
-                    <select name="Yakit_Tipi" value={formData.Yakit_Tipi} onChange={handleChange} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 text-sm outline-none transition dark:text-slate-100">
-                    <option value="">Belirtilmemiş</option>
-                    {options.Yakit_Tipi?.map(o => <option key={o} value={o}>{o}</option>)}
-                  </select>
+                    <div className="relative">
+                      <select name="Yakit_Tipi" value={formData.Yakit_Tipi} onChange={handleChange} className="w-full appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 pr-10 text-sm outline-none transition dark:text-slate-100">
+                        <option value="">Belirtilmemiş</option>
+                        {options.Yakit_Tipi?.map(o => <option key={o} value={o}>{o}</option>)}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
                   )}
                 </div>
                 <div>
@@ -496,10 +503,17 @@ export default function Home() {
                   {loadingOptions && (!options.Vites_Tipi || options.Vites_Tipi.length === 0) ? (
                     <div className="w-full h-[46px] bg-slate-200 dark:bg-slate-800 animate-pulse rounded-lg"></div>
                   ) : (
-                    <select name="Vites_Tipi" value={formData.Vites_Tipi} onChange={handleChange} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 text-sm outline-none transition dark:text-slate-100">
-                    <option value="">Belirtilmemiş</option>
-                    {options.Vites_Tipi?.map(o => <option key={o} value={o}>{o}</option>)}
-                  </select>
+                    <div className="relative">
+                      <select name="Vites_Tipi" value={formData.Vites_Tipi} onChange={handleChange} className="w-full appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2.5 pr-10 text-sm outline-none transition dark:text-slate-100">
+                        <option value="">Belirtilmemiş</option>
+                        {options.Vites_Tipi?.map(o => <option key={o} value={o}>{o}</option>)}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
                   )}
                 </div>
 

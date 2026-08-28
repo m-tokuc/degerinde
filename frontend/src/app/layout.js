@@ -15,7 +15,7 @@ export const metadata = {
   title: "Değerinde | Yapay Zeka Destekli Araç Değerleme",
   description: "Gelişmiş yapay zeka algoritmaları ile saniyeler içinde aracınızın güncel piyasa değerini, fiyat aralığını ve donanım etkilerini öğrenin.",
   icons: {
-    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none"><path d="M15 70 L30 70 L40 45 L70 45 L80 70 L95 70" stroke="%232563eb" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="30" cy="70" r="7" fill="%232563eb" stroke="%232563eb" stroke-width="5"/><circle cx="80" cy="70" r="7" fill="%232563eb" stroke="%232563eb" stroke-width="5"/><path d="M25 40 L45 20 L60 30 L85 10" stroke="%230ea5e9" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M70 10 L85 10 L85 25" stroke="%230ea5e9" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none"><rect width="100" height="100" rx="22" fill="white"/><path d="M15 70 L30 70 L40 45 L70 45 L80 70 L95 70" stroke="%232563eb" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="30" cy="70" r="7" fill="%232563eb" stroke="%232563eb" stroke-width="5"/><circle cx="80" cy="70" r="7" fill="%232563eb" stroke="%232563eb" stroke-width="5"/><path d="M25 40 L45 20 L60 30 L85 10" stroke="%230ea5e9" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M70 10 L85 10 L85 25" stroke="%230ea5e9" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   },
 };
 
