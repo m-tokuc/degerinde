@@ -1,11 +1,11 @@
 #!/bin/bash
 
-if ! [ -x "$(command -v docker-compose)" ]; then
+if ! [ -x "$(command -v docker)" ]; then
   echo 'Hata: docker-compose yüklü değil.' >&2
   exit 1
 fi
 
-domains=(degerinde.com www.degerinde.com)
+domains=(degerinde.duckdns.org)
 rsa_key_size=4096
 data_path="./certbot"
 email="destek@degerinde.com" # Let's Encrypt uyarıları için
@@ -21,7 +21,7 @@ fi
 echo "### 1. Nginx'i kandırmak için sahte (dummy) sertifika oluşturuluyor..."
 path="/etc/letsencrypt/live/${domains[0]}"
 mkdir -p "$data_path/conf/live/${domains[0]}"
-docker-compose run --rm --entrypoint "\
+docker compose run --rm --entrypoint "\
   openssl req -x509 -nodes -newkey rsa:$rsa_key_size -days 1\
     -keyout '$path/privkey.pem' \
     -out '$path/fullchain.pem' \
@@ -29,11 +29,11 @@ docker-compose run --rm --entrypoint "\
 echo
 
 echo "### 2. Nginx ayağa kaldırılıyor..."
-docker-compose up --force-recreate -d nginx
+docker compose up --force-recreate -d nginx
 echo
 
 echo "### 3. Nginx çalıştı, sahte sertifika siliniyor..."
-docker-compose run --rm --entrypoint "\
+docker compose run --rm --entrypoint "\
   rm -Rf /etc/letsencrypt/live/${domains[0]} && \
   rm -Rf /etc/letsencrypt/archive/${domains[0]} && \
   rm -Rf /etc/letsencrypt/renewal/${domains[0]}.conf" certbot
@@ -55,7 +55,7 @@ esac
 # Staging (Test) argümanı
 if [ $staging != "0" ]; then staging_arg="--staging"; fi
 
-docker-compose run --rm --entrypoint "\
+docker compose run --rm --entrypoint "\
   certbot certonly --webroot -w /var/www/certbot \
     $staging_arg \
     $email_arg \
@@ -66,5 +66,5 @@ docker-compose run --rm --entrypoint "\
 echo
 
 echo "### 5. Sertifika alındı, Nginx yeni sertifika ile yeniden yükleniyor..."
-docker-compose exec nginx nginx -s reload
+docker compose exec nginx nginx -s reload
 echo "✅ BAŞARILI: Nginx ve SSL Sertifikası hazır!"
