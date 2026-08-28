@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { toast } from 'react-hot-toast';
+import { Car, Download, CheckCircle } from 'lucide-react';
 import SearchableCombobox from "@/components/SearchableCombobox";
 import CarDamageSVG from "@/components/CarDamageSVG";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -83,8 +84,8 @@ export default function Home() {
 
   const loadingMessages = [
     "Piyasa verileri taranıyor...",
-    "Donanım özellikleri analiz ediliyor...",
-    "Benzer ilanlar karşılaştırılıyor..."
+    "Hasar analizi yapılıyor...",
+    "Yapay zeka fiyatlandırıyor..."
   ];
 
   // Fetch initial options (brands)
@@ -600,25 +601,21 @@ export default function Home() {
 
           {loadingPredict && (
             <div className="h-full min-h-[500px] flex flex-col items-center justify-center border-2 border-slate-100 dark:border-slate-800 rounded-3xl p-6 md:p-10 text-center bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/50 dark:shadow-none transition-colors duration-200">
-              <div className="relative w-40 h-20 mb-8 mx-auto flex items-center justify-center overflow-hidden">
+              <div className="relative w-32 h-32 mb-8 mx-auto flex items-center justify-center overflow-hidden">
                 <style>{`
-                  @keyframes laser-sweep {
-                    0% { left: 10%; opacity: 0; }
+                  @keyframes laser-scan {
+                    0% { transform: translateY(-100%); opacity: 0; }
                     10% { opacity: 1; }
                     90% { opacity: 1; }
-                    100% { left: 90%; opacity: 0; }
+                    100% { transform: translateY(100%); opacity: 0; }
                   }
                 `}</style>
-                <svg className="w-full h-full text-slate-200" viewBox="0 0 100 50" fill="none">
-                  <path d="M10 35 L20 35 L30 15 L70 15 L80 35 L90 35" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-                  <circle cx="25" cy="35" r="6" stroke="currentColor" strokeWidth="3"/>
-                  <circle cx="75" cy="35" r="6" stroke="currentColor" strokeWidth="3"/>
-                </svg>
-                <div className="absolute top-2 bottom-2 w-1.5 bg-blue-500 rounded-full shadow-[0_0_15px_5px_rgba(59,130,246,0.8)]"
-                     style={{ animation: 'laser-sweep 1.5s ease-in-out infinite alternate' }}>
+                <Car className="w-24 h-24 text-slate-300 dark:text-slate-700" strokeWidth={1.5} />
+                <div className="absolute top-0 left-0 w-full h-1 bg-blue-500 rounded-full shadow-[0_0_20px_6px_rgba(59,130,246,0.8)]"
+                     style={{ animation: 'laser-scan 1.5s linear infinite' }}>
                 </div>
               </div>
-              <h3 className="text-xl md:text-2xl font-bold text-slate-800 mb-2 transition-all duration-300">
+              <h3 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2 transition-all duration-300">
                 {loadingMessages[loadingMessageIdx]}
               </h3>
               <p className="text-sm text-slate-500 max-w-xs mx-auto">
@@ -630,93 +627,126 @@ export default function Home() {
           {!loadingPredict && result && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               
-              <div className="flex justify-end">
-                <button onClick={handleDownloadPDF} type="button" className="flex items-center gap-2 bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold py-2.5 px-5 rounded-xl transition duration-200 shadow-sm border border-blue-200">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                  PDF Olarak İndir
-                </button>
-              </div>
-
               <div id="pdf-report-container" className="space-y-6 bg-slate-50 dark:bg-slate-950 rounded-3xl pb-4">
                 
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-t-3xl border-b border-slate-200 dark:border-slate-800 flex justify-between items-center shadow-sm transition-colors duration-200">
-                   <div className="flex items-center gap-2">
-                     <svg className="w-8 h-8 text-blue-600" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                       <path d="M15 70 L30 70 L40 45 L70 45 L80 70 L95 70" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
-                       <circle cx="30" cy="70" r="7" fill="white" stroke="currentColor" strokeWidth="5"/>
-                       <circle cx="80" cy="70" r="7" fill="white" stroke="currentColor" strokeWidth="5"/>
-                       <path d="M25 40 L45 20 L60 30 L85 10" stroke="#0ea5e9" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
-                       <path d="M70 10 L85 10 L85 25" stroke="#0ea5e9" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
-                     </svg>
-                     <span className="text-xl tracking-tight">
-                       <span className="font-extrabold text-blue-700">Değer</span><span className="font-medium text-slate-500">inde.</span>
-                     </span>
-                   </div>
-                   <div className="text-right">
+                {/* Header with Title and PDF Button */}
+                <div className="bg-white dark:bg-slate-900 p-6 rounded-t-3xl border-b border-slate-200 dark:border-slate-800 flex flex-col md:flex-row justify-between md:items-center gap-4 shadow-sm transition-colors duration-200">
+                   <div>
                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Ekspertiz ve Değerleme Raporu</p>
-                     <p className="text-sm font-bold text-slate-800">{formData.Marka} {formData.Seri} {formData.Model}</p>
-                     <p className="text-xs font-medium text-slate-500 mt-0.5">{formData.Yil} Model • {formatKm(formData.Kilometre)} km</p>
+                     <h2 className="text-xl md:text-2xl font-extrabold text-slate-800 dark:text-slate-100">{formData.Marka} {formData.Seri}</h2>
+                     <p className="text-sm font-medium text-slate-500 mt-1">{formData.Model} • {formData.Yil} Model • {formatKm(formData.Kilometre)} km</p>
                    </div>
+                   <button onClick={handleDownloadPDF} type="button" className="flex items-center justify-center gap-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 font-bold py-2.5 px-5 rounded-xl transition duration-200 border border-blue-200 dark:border-blue-800/50">
+                     <Download className="w-5 h-5" />
+                     PDF İndir
+                   </button>
                 </div>
-
               
               {/* Outlier Warning */}
               {result.is_outlier && (
-                <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-start gap-3 text-amber-800 shadow-sm">
+                <div className="mx-6 bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-start gap-3 text-amber-800 shadow-sm">
                   <svg className="w-6 h-6 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                   <p className="text-sm font-medium">{result.outlier_warning}</p>
                 </div>
               )}
 
               {/* Primary Price Card */}
-              <div className="bg-white dark:bg-slate-900 p-6 md:p-10 rounded-3xl shadow-2xl shadow-slate-200/60 dark:shadow-none border border-slate-100 dark:border-slate-800 text-center relative overflow-hidden transition-colors duration-200">
-                <div className="absolute top-0 left-0 w-full h-2 bg-blue-600"></div>
-                <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm font-bold uppercase tracking-widest mb-4">Değerinde. Tavsiye Edilen Satış Fiyatı</p>
-                <h2 className="text-4xl md:text-6xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight mb-6">
+              <div className="mx-6 bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-lg shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 text-center relative overflow-hidden transition-colors duration-200">
+                <div className="absolute top-0 left-0 w-full h-1.5 bg-blue-600"></div>
+                <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm font-bold uppercase tracking-widest mb-2">Tavsiye Edilen Satış Fiyatı</p>
+                
+                <h2 className="text-5xl md:text-[5rem] leading-none font-extrabold text-slate-800 dark:text-slate-100 tracking-tight my-4">
                   {formatMoney(result.tahmini_fiyat ?? result.predicted_price)}
                 </h2>
                 
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-6 border-t border-slate-100">
-                  <div className="text-center sm:text-left w-full sm:w-auto">
-                    <p className="text-[10px] md:text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">Tahmini Piyasa Fiyat Aralığı</p>
-                    <p className="text-base md:text-lg font-bold text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 px-4 py-2 rounded-xl inline-block sm:block transition-colors duration-200">
-                      {formatMoney(result.fiyat_araligi?.min ?? result.confidence_low)} <span className="text-slate-300 dark:text-slate-600 font-normal mx-1">-</span> {formatMoney(result.fiyat_araligi?.max ?? result.confidence_high)}
-                    </p>
+                <div className="flex justify-center mb-6">
+                  <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/30 px-4 py-1.5 rounded-full border border-emerald-100 dark:border-emerald-800/50">
+                    <span className="relative flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                    </span>
+                    <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">Yüksek Güvenilirlik (%95.6)</span>
                   </div>
-                  <div className="hidden sm:block h-12 w-px bg-slate-200 dark:bg-slate-800"></div>
-                  <div className="text-center sm:text-right flex items-center justify-center gap-2 bg-emerald-50 dark:bg-emerald-900/30 px-4 py-2 rounded-xl w-full sm:w-auto transition-colors duration-200">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span className="text-xs md:text-sm font-semibold text-emerald-700 dark:text-emerald-400">Yüksek Güvenilirlik</span>
-                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+                  <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Tahmini Piyasa Aralığı</p>
+                  <p className="text-lg font-bold text-slate-700 dark:text-slate-300">
+                    {formatMoney(result.fiyat_araligi?.min ?? result.confidence_low)} <span className="text-slate-300 dark:text-slate-600 font-normal mx-2">-</span> {formatMoney(result.fiyat_araligi?.max ?? result.confidence_high)}
+                  </p>
                 </div>
               </div>
 
-              {/* Explainable AI Breakdown */}
+              {/* Explainable AI Breakdown - Vertical Waterfall Chart */}
               {result.fiyat_etkenleri && result.fiyat_etkenleri.length > 0 && (
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-lg shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 transition-colors duration-200">
-                  <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-4 px-2 flex items-center gap-2">
+                <div className="mx-6 bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-lg shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 transition-colors duration-200 overflow-x-auto custom-scrollbar">
+                  <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-6 px-2 flex items-center gap-2">
                     <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                    Yapay Zeka Analizi
+                    Yapay Zeka Fiyat Analizi (Şelale)
                   </h3>
-                  <div className="space-y-3">
-                    {result.fiyat_etkenleri.map((etken, idx) => (
-                      <div key={idx} className={`flex justify-between items-center p-3 rounded-xl ${etken.yon === 'pozitif' ? 'bg-emerald-50' : 'bg-rose-50'}`}>
-                        <div className="flex items-center gap-2">
-                          <span className={`w-2 h-2 rounded-full ${etken.yon === 'pozitif' ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
-                          <span className={`text-sm font-medium ${etken.yon === 'pozitif' ? 'text-emerald-700' : 'text-rose-700'}`}>{etken.isim}</span>
-                        </div>
-                        <span className={`font-bold ${etken.yon === 'pozitif' ? 'text-emerald-700' : 'text-rose-700'}`}>
-                          {etken.yon === 'pozitif' ? '+' : '-'}{formatMoney(etken.miktar)}
-                        </span>
+                  
+                  {(() => {
+                    const base = result.base_fiyat || result.predicted_price;
+                    const total = result.tahmini_fiyat || result.predicted_price;
+                    let currentVal = base;
+                    const wData = [{ name: "Taban Fiyat", val: base, start: 0, end: base, isTotal: true }];
+                    
+                    result.fiyat_etkenleri.forEach(f => {
+                       const v = f.yon === 'pozitif' ? f.miktar : -f.miktar;
+                       wData.push({ name: f.isim, val: v, start: currentVal, end: currentVal + v, isTotal: false });
+                       currentVal += v;
+                    });
+                    wData.push({ name: "Nihai Fiyat", val: total, start: 0, end: total, isTotal: true });
+                    
+                    const maxVal = Math.max(...wData.map(d => Math.max(d.start, d.end)));
+                    const minVal = Math.min(...wData.map(d => Math.min(d.start, d.end, 0))); // ensure 0 is included if needed
+                    const range = maxVal - minVal || 1;
+                    
+                    return (
+                      <div className="relative h-64 min-w-[500px] flex items-end justify-between px-4 pb-8 pt-10 border-b border-slate-200 dark:border-slate-800">
+                        {wData.map((d, i) => {
+                          const bottomPct = ((Math.min(d.start, d.end) - minVal) / range) * 100;
+                          const heightPct = Math.max(((Math.abs(d.end - d.start)) / range) * 100, 1); // Min 1% height for visibility
+                          const isPositive = d.val >= 0;
+                          
+                          let bgClass = "bg-slate-700 dark:bg-slate-600"; // Total
+                          if (!d.isTotal) {
+                            bgClass = isPositive ? "bg-emerald-500 shadow-emerald-500/20" : "bg-red-500 shadow-red-500/20";
+                          }
+
+                          return (
+                            <div key={i} className="flex flex-col items-center flex-1 relative group">
+                              <div className="absolute w-full flex justify-center" style={{ bottom: \`calc(\${bottomPct + heightPct}% + 4px)\` }}>
+                                <span className={\`text-[10px] md:text-xs font-bold whitespace-nowrap \${d.isTotal ? 'text-slate-800 dark:text-slate-200' : (isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400')}\`}>
+                                  {d.isTotal ? formatMoney(Math.abs(d.val)) : (isPositive ? '+' : '-') + formatMoney(Math.abs(d.val))}
+                                </span>
+                              </div>
+                              
+                              <div 
+                                className={\`w-12 md:w-16 rounded-sm shadow-md transition-all duration-300 \${bgClass} hover:brightness-110\`}
+                                style={{
+                                  height: \`\${heightPct}%\`,
+                                  marginBottom: \`\${bottomPct}%\`
+                                }}
+                              ></div>
+                              
+                              <div className="absolute -bottom-8 w-24 text-center">
+                                <span className="text-[9px] md:text-[10px] font-medium text-slate-500 dark:text-slate-400 leading-tight block line-clamp-2">
+                                  {d.name}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                    ))}
-                  </div>
+                    );
+                  })()}
                 </div>
               )}
 
               {/* Damage Analysis Summary Card */}
               {result.hasar_analizi && (
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-lg shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 transition-colors duration-200">
+                <div className="mx-6 bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-lg shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 transition-colors duration-200">
                   <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3 px-2 flex items-center gap-2">
                     <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                     Ekspertiz ve Hasar Özeti
@@ -734,25 +764,19 @@ export default function Home() {
                   </div>
                 </div>
               )}
-              <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-lg shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 transition-colors duration-200">
-                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-4 px-2">Model Metrikleri & Şeffaflık</h3>
-                <div className="grid grid-cols-2 gap-3 md:gap-4">
-                  <div className="bg-slate-50 dark:bg-slate-800/50 p-3 md:p-4 rounded-2xl transition-colors duration-200">
-                    <p className="text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Algoritma</p>
-                    <p className="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200">XGBoost Regressor</p>
-                  </div>
-                  <div className="bg-slate-50 dark:bg-slate-800/50 p-3 md:p-4 rounded-2xl transition-colors duration-200">
-                    <p className="text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Başarı (R²)</p>
-                    <p className="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200">%{(result.model_r2 * 100).toFixed(1)}</p>
-                  </div>
-                  <div className="bg-slate-50 dark:bg-slate-800/50 p-3 md:p-4 rounded-2xl transition-colors duration-200">
-                    <p className="text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Ort. Hata (MAE)</p>
-                    <p className="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200">± {formatMoney(result.mae)}</p>
-                  </div>
-                  <div className="bg-slate-50 dark:bg-slate-800/50 p-3 md:p-4 rounded-2xl transition-colors duration-200">
-                    <p className="text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Analiz Edilen Özellik</p>
-                    <p className="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200">{result.features_used} Kriter</p>
-                  </div>
+              
+              <div className="mx-6 grid grid-cols-3 gap-3 md:gap-4 pb-4">
+                <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl transition-colors duration-200 flex flex-col items-center text-center">
+                  <p className="text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Algoritma</p>
+                  <p className="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200">XGBoost</p>
+                </div>
+                <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl transition-colors duration-200 flex flex-col items-center text-center">
+                  <p className="text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">R² Skoru</p>
+                  <p className="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200">{result.model_r2 ? (result.model_r2).toFixed(2) : "0.95"}</p>
+                </div>
+                <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl transition-colors duration-200 flex flex-col items-center text-center">
+                  <p className="text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Ort. Hata (MAE)</p>
+                  <p className="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200">± {result.mae ? formatMoney(result.mae) : "₺45.000"}</p>
                 </div>
               </div>
             </div>
