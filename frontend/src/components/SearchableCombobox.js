@@ -181,7 +181,7 @@ function BrandLogo({ brand }) {
   return (
     <div className="w-6 h-6 shrink-0 flex items-center justify-center bg-white dark:bg-slate-600 rounded-md border border-slate-100 dark:border-slate-500 overflow-hidden p-0.5">
       <img
-        src={`https://logo.clearbit.com/${domain}`}
+        src={`https://icon.horse/icon/${domain}`}
         className="w-full h-full object-contain"
         alt={brand}
         onError={() => setFailed(true)}
