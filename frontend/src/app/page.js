@@ -627,19 +627,34 @@ export default function Home() {
           {!loadingPredict && result && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               
+              <div className="flex justify-end">
+                <button onClick={handleDownloadPDF} type="button" className="flex items-center gap-2 bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold py-2.5 px-5 rounded-xl transition duration-200 shadow-sm border border-blue-200">
+                  <Download className="w-5 h-5" />
+                  PDF Olarak İndir
+                </button>
+              </div>
+
               <div id="pdf-report-container" className="space-y-6 bg-slate-50 dark:bg-slate-950 rounded-3xl pb-4">
                 
-                {/* Header with Title and PDF Button */}
-                <div className="bg-white dark:bg-slate-900 p-6 rounded-t-3xl border-b border-slate-200 dark:border-slate-800 flex flex-col md:flex-row justify-between md:items-center gap-4 shadow-sm transition-colors duration-200">
-                   <div>
-                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Ekspertiz ve Değerleme Raporu</p>
-                     <h2 className="text-xl md:text-2xl font-extrabold text-slate-800 dark:text-slate-100">{formData.Marka} {formData.Seri}</h2>
-                     <p className="text-sm font-medium text-slate-500 mt-1">{formData.Model} • {formData.Yil} Model • {formatKm(formData.Kilometre)} km</p>
+                {/* Header with Title */}
+                <div className="bg-white dark:bg-slate-900 p-6 rounded-t-3xl border-b border-slate-200 dark:border-slate-800 flex justify-between items-center shadow-sm transition-colors duration-200">
+                   <div className="flex items-center gap-2">
+                     <svg className="w-8 h-8 text-blue-600" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                       <path d="M15 70 L30 70 L40 45 L70 45 L80 70 L95 70" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
+                       <circle cx="30" cy="70" r="7" fill="white" stroke="currentColor" strokeWidth="5"/>
+                       <circle cx="80" cy="70" r="7" fill="white" stroke="currentColor" strokeWidth="5"/>
+                       <path d="M25 40 L45 20 L60 30 L85 10" stroke="#0ea5e9" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
+                       <path d="M70 10 L85 10 L85 25" stroke="#0ea5e9" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
+                     </svg>
+                     <span className="text-xl tracking-tight">
+                       <span className="font-extrabold text-blue-700">Değer</span><span className="font-medium text-slate-500">inde.</span>
+                     </span>
                    </div>
-                   <button onClick={handleDownloadPDF} type="button" className="flex items-center justify-center gap-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 font-bold py-2.5 px-5 rounded-xl transition duration-200 border border-blue-200 dark:border-blue-800/50">
-                     <Download className="w-5 h-5" />
-                     PDF İndir
-                   </button>
+                   <div className="text-right">
+                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Ekspertiz ve Değerleme Raporu</p>
+                     <h2 className="text-sm md:text-lg font-bold text-slate-800 dark:text-slate-100">{formData.Marka} {formData.Seri}</h2>
+                     <p className="text-xs font-medium text-slate-500 mt-0.5">{formData.Model} • {formatKm(formData.Kilometre)} km</p>
+                   </div>
                 </div>
               
               {/* Outlier Warning */}
@@ -651,29 +666,31 @@ export default function Home() {
               )}
 
               {/* Primary Price Card */}
-              <div className="mx-6 bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-lg shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 text-center relative overflow-hidden transition-colors duration-200">
+              <div className="mx-6 bg-white dark:bg-slate-900 p-6 md:p-10 rounded-3xl shadow-sm dark:shadow-none border border-slate-100 dark:border-slate-800 relative overflow-hidden transition-colors duration-200">
                 <div className="absolute top-0 left-0 w-full h-1.5 bg-blue-600"></div>
-                <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm font-bold uppercase tracking-widest mb-2">Tavsiye Edilen Satış Fiyatı</p>
+                <div className="text-center">
+                  <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm font-bold uppercase tracking-widest mb-3">Değerinde. Tavsiye Edilen Satış Fiyatı</p>
+                  
+                  <h2 className="text-5xl md:text-6xl font-extrabold text-slate-900 dark:text-slate-100 tracking-tight my-4">
+                    {formatMoney(result.tahmini_fiyat ?? result.predicted_price)}
+                  </h2>
+                </div>
                 
-                <h2 className="text-5xl md:text-[5rem] leading-none font-extrabold text-slate-800 dark:text-slate-100 tracking-tight my-4">
-                  {formatMoney(result.tahmini_fiyat ?? result.predicted_price)}
-                </h2>
-                
-                <div className="flex justify-center mb-6">
-                  <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/30 px-4 py-1.5 rounded-full border border-emerald-100 dark:border-emerald-800/50">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
+                  <div className="text-center sm:text-left w-full sm:w-auto">
+                    <p className="text-[10px] md:text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Tahmini Piyasa Aralığı</p>
+                    <p className="text-base md:text-xl font-bold text-slate-700 dark:text-slate-300">
+                      {formatMoney(result.fiyat_araligi?.min ?? result.confidence_low)} <span className="text-slate-300 dark:text-slate-600 font-normal mx-2">-</span> {formatMoney(result.fiyat_araligi?.max ?? result.confidence_high)}
+                    </p>
+                  </div>
+                  <div className="hidden sm:block h-10 w-px bg-slate-200 dark:bg-slate-800"></div>
+                  <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/30 px-4 py-2 rounded-xl border border-emerald-100 dark:border-emerald-800/50">
                     <span className="relative flex h-3 w-3">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
                     </span>
-                    <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">Yüksek Güvenilirlik (%95.6)</span>
+                    <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">Yüksek Güvenilirlik</span>
                   </div>
-                </div>
-
-                <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
-                  <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Tahmini Piyasa Aralığı</p>
-                  <p className="text-lg font-bold text-slate-700 dark:text-slate-300">
-                    {formatMoney(result.fiyat_araligi?.min ?? result.confidence_low)} <span className="text-slate-300 dark:text-slate-600 font-normal mx-2">-</span> {formatMoney(result.fiyat_araligi?.max ?? result.confidence_high)}
-                  </p>
                 </div>
               </div>
 
@@ -703,10 +720,10 @@ export default function Home() {
                     const range = maxVal - minVal || 1;
                     
                     return (
-                      <div className="relative h-64 min-w-[500px] flex items-end justify-between px-4 pb-8 pt-10 border-b border-slate-200 dark:border-slate-800">
+                      <div className="relative h-72 min-w-[500px] flex px-4 pb-12 pt-10 border-b border-slate-200 dark:border-slate-800">
                         {wData.map((d, i) => {
                           const bottomPct = ((Math.min(d.start, d.end) - minVal) / range) * 100;
-                          const heightPct = Math.max(((Math.abs(d.end - d.start)) / range) * 100, 1); // Min 1% height for visibility
+                          const heightPct = Math.max(((Math.abs(d.end - d.start)) / range) * 100, 0.5); // Min height for visibility
                           const isPositive = d.val >= 0;
                           
                           let bgClass = "bg-slate-700 dark:bg-slate-600"; // Total
@@ -715,23 +732,23 @@ export default function Home() {
                           }
 
                           return (
-                            <div key={i} className="flex flex-col items-center flex-1 relative group">
-                              <div className="absolute w-full flex justify-center" style={{ bottom: `calc(${bottomPct + heightPct}% + 4px)` }}>
-                                <span className={`text-[10px] md:text-xs font-bold whitespace-nowrap ${d.isTotal ? 'text-slate-800 dark:text-slate-200' : (isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400')}`}>
+                            <div key={i} className="flex-1 relative h-full group">
+                              <div className="absolute w-full flex justify-center" style={{ bottom: `calc(${bottomPct + heightPct}% + 8px)` }}>
+                                <span className={`text-[9px] md:text-xs font-bold whitespace-nowrap ${d.isTotal ? 'text-slate-800 dark:text-slate-200' : (isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400')}`}>
                                   {d.isTotal ? formatMoney(Math.abs(d.val)) : (isPositive ? '+' : '-') + formatMoney(Math.abs(d.val))}
                                 </span>
                               </div>
                               
                               <div 
-                                className={`w-12 md:w-16 rounded-sm shadow-md transition-all duration-300 ${bgClass} hover:brightness-110`}
+                                className={`absolute left-1/2 -translate-x-1/2 w-8 md:w-12 rounded-sm shadow-sm transition-all duration-300 ${bgClass} hover:brightness-110`}
                                 style={{
                                   height: `${heightPct}%`,
-                                  marginBottom: `${bottomPct}%`
+                                  bottom: `${bottomPct}%`
                                 }}
                               ></div>
                               
-                              <div className="absolute -bottom-8 w-24 text-center">
-                                <span className="text-[9px] md:text-[10px] font-medium text-slate-500 dark:text-slate-400 leading-tight block line-clamp-2">
+                              <div className="absolute -bottom-10 w-full flex justify-center">
+                                <span className="text-[8px] md:text-[9px] font-medium text-slate-500 dark:text-slate-400 leading-tight block truncate w-16 md:w-20 text-center px-1">
                                   {d.name}
                                 </span>
                               </div>
@@ -766,15 +783,15 @@ export default function Home() {
               )}
               
               <div className="mx-6 grid grid-cols-3 gap-3 md:gap-4 pb-4">
-                <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl transition-colors duration-200 flex flex-col items-center text-center">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl transition-colors duration-200 flex flex-col items-center text-center shadow-sm">
                   <p className="text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Algoritma</p>
                   <p className="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200">XGBoost</p>
                 </div>
-                <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl transition-colors duration-200 flex flex-col items-center text-center">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl transition-colors duration-200 flex flex-col items-center text-center shadow-sm">
                   <p className="text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">R² Skoru</p>
                   <p className="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200">{result.model_r2 ? (result.model_r2).toFixed(2) : "0.95"}</p>
                 </div>
-                <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl transition-colors duration-200 flex flex-col items-center text-center">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl transition-colors duration-200 flex flex-col items-center text-center shadow-sm">
                   <p className="text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Ort. Hata (MAE)</p>
                   <p className="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200">± {result.mae ? formatMoney(result.mae) : "₺45.000"}</p>
                 </div>
