@@ -93,3 +93,15 @@ Bugün staj raporunun hazırlıklarını tamamladım ve raporu hazır hale getir
 ## 📅 27 Ağustos Raporu
 
 Bugün projenin kullanıcı arayüzü (UX) detaylarını iyileştirmeye ve entegrasyon pürüzlerini tamamen yok etmeye odaklandım. Frontend tarafındaki SearchableCombobox bileşenini yeniledim; marka seçimlerinde Google Favicon API kullanarak logoların temiz gelmesini sağladım, logosu bulunamayanlar için harf temelli dinamik avatarlar ekledim. Model fiyat tahmini esnasında `__sklearn_tags__` hatası yüzünden patlıyordu; sorunun scikit-learn sürüm uyumsuzluğu olduğunu tespit edip modeli eğiten eski sürüme (1.5.2) düşürerek backend'in hatasız tahmin yapmasını sağladım. Formlardaki renk seçim mantığını dinamik (modele bağlı azalan liste) yapıdan, UX'i bozmamak adına sabit, sade ve renkli kutucuklu (swatch) bir yapıya geçirdim. Şu an model tahmin yapıyor, UI kusursuz ve 404 hataları tamamen temizlendi.
+
+---
+
+## 📅 28 Ağustos Raporu
+
+Bugün projeyi tamamen canlıya (production) aldım. Öncelikle şu arama kutusundaki logo belasıyla uğraştım; Favicon API'leri reklam engelleyicilere takıldığı için logoların yarısı patlıyordu. Ben de açık kaynaklı bir araba logosu veri seti bulup, marka isimlerini slug formatına çevirerek (alfa-romeo gibi) sisteme statik CDN olarak entegre ettim. Türkçe karakterli ve garip isimli markalar (BMC, Citroën vs.) için de ufak bir istisna sözlüğü (override) yazıp 404 hatası yeme olayını kökünden çözdüm.
+
+Sonrasında canlıya çıkmadan önce kodu bir elden geçirip testleri yaptım. React tarafındaki eksik key'leri, sonsuz döngüye sokabilecek useEffect kancalarını falan toparladım. Özellikle 13 parçalı SVG hasar durum formundan giden verilerin FastAPI tarafındaki şemayla (Pydantic) eksiksiz uyuştuğunu test edip onayladım.
+
+En son SSH ile Oracle sunucusuna bağlanıp Docker build'i başlattım. Next.js build alırken repo'ya eklemeyi unuttuğum jsconfig.json dosyasını bulamadığı için `@/components` dizinlerinde patladı. O dosyayı da sunucuya atıp Docker üzerinden sistemi başarıyla ayağa kaldırdım. 
+
+Günün sonunda degerinde.duckdns.org domainini bağlayıp, Nginx config dosyası üzerinden Let's Encrypt ile SSL sertifikasını hallettim (eski docker-compose script hatalarını da düzelttim). Şuan proje gerçek alan adında, tamamen HTTPS güvencesiyle ve sıfır 404 hatasıyla tıkır tıkır çalışıyor.
