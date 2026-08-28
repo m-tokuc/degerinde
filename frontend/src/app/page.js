@@ -264,6 +264,12 @@ export default function Home() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!formData.Marka || !formData.Seri || !formData.Model || !formData.Yil || formData.Kilometre === "" || formData.Kilometre === undefined) {
+      toast.error("Lütfen yıldızlı (*) tüm zorunlu alanları doldurun.");
+      return;
+    }
+
     setLoadingPredict(true);
     setLoadingMessageIdx(0);
     setResult(null);
@@ -306,7 +312,14 @@ export default function Home() {
 
   const handleKmChange = (e) => {
     const rawVal = e.target.value.replace(/\D/g, "");
+    if (rawVal.length > 7) return;
     setFormData({...formData, Kilometre: rawVal});
+  };
+
+  const handleTramerChange = (e) => {
+    const rawVal = e.target.value.replace(/\D/g, "");
+    if (rawVal.length > 8) return;
+    setFormData({...formData, Tramer_TL: rawVal});
   };
 
   const formatKm = (val) => {
@@ -614,7 +627,7 @@ export default function Home() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 pt-3">
                 <div>
                   <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">Tramer Kaydı (TL)</label>
-                  <input type="number" name="Tramer_TL" min="0" value={formData.Tramer_TL} onChange={handleChange} placeholder="Örn: 15.000" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-sm outline-none transition dark:text-slate-100" />
+                  <input type="text" inputMode="numeric" name="Tramer_TL" value={formData.Tramer_TL ? parseInt(formData.Tramer_TL, 10).toLocaleString('tr-TR') : ''} onChange={handleTramerChange} placeholder="Örn: 15.000" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition dark:text-slate-100" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">Kimden</label>
