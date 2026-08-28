@@ -343,9 +343,21 @@ export default function Home() {
       });
       
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (element.offsetHeight * pdfWidth) / element.offsetWidth;
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgHeight = (element.offsetHeight * pdfWidth) / element.offsetWidth;
       
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      let heightLeft = imgHeight;
+      let position = 0;
+      
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+      heightLeft -= pageHeight;
+      
+      while (heightLeft > 0) {
+        position -= pageHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
       pdf.save(`Degerinde_Rapor_${formData.Marka}_${formData.Model}.pdf`);
       
       toast.success('PDF başarıyla indirildi!', { id: toastId });
