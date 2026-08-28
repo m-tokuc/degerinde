@@ -2,77 +2,7 @@ import { useState } from 'react'
 import { Combobox, ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions } from '@headlessui/react'
 import { Check, ChevronDown } from 'lucide-react'
 
-// Hardcoded dictionary of popular brand domains for clearbit logo CDN
-const brandDomains = {
-  'bmw': 'bmw.com',
-  'mercedes-benz': 'mercedes-benz.com',
-  'audi': 'audi.com',
-  'renault': 'renault.com.tr',
-  'fiat': 'fiat.com.tr',
-  'ford': 'ford.com',
-  'ford - otosan': 'ford.com.tr',
-  'ford trucks': 'fordtrucks.com',
-  'toyota': 'toyota.com.tr',
-  'hyundai': 'hyundai.com.tr',
-  'honda': 'honda.com.tr',
-  'peugeot': 'peugeot.com.tr',
-  'opel': 'opel.com.tr',
-  'nissan': 'nissan.com.tr',
-  'citroen': 'citroen.com.tr',
-  'citroën': 'citroen.com.tr',
-  'dacia': 'dacia.com.tr',
-  'kia': 'kia.com.tr',
-  'skoda': 'skoda.com.tr',
-  'seat': 'seat.es',
-  'cupra': 'cupraofficial.com',
-  'volkswagen': 'vw.com.tr',
-  'volvo': 'volvocars.com',
-  'land rover': 'landrover.com.tr',
-  'jeep': 'jeep.com.tr',
-  'porsche': 'porsche.com',
-  'mini': 'mini.com',
-  'alfa romeo': 'alfaromeo.com.tr',
-  'mazda': 'mazda.com.tr',
-  'subaru': 'subaru.com',
-  'suzuki': 'suzuki.com.tr',
-  'chevrolet': 'chevrolet.com',
-  'mitsubishi': 'mitsubishi-motors.com.tr',
-  'lexus': 'lexus.com',
-  'jaguar': 'jaguar.com.tr',
-  'maserati': 'maserati.com',
-  'ferrari': 'ferrari.com',
-  'mg': 'mg.co.uk',
-  'byd': 'byd.com',
-  'chery': 'chery.cn',
-  'geely': 'geely.com',
-  'tofaş': 'tofas.com.tr',
-  'kgm ssangyong': 'smotor.com',
-  'ssangyong': 'smotor.com',
-  'ds automobiles': 'dsautomobiles.com.tr',
-  'daihatsu': 'daihatsu.com',
-  'isuzu': 'isuzu.com.tr',
-  'iveco - otoyol': 'iveco.com.tr',
-  'daf': 'daftrucks.com',
-  'lancia': 'lancia.com',
-  'lada': 'lada.ru',
-  'bmc': 'bmc.com.tr',
-  'temsa': 'temsa.com',
-  'smart': 'smart.com',
-  'tesla': 'tesla.com',
-  'togg': 'togg.com.tr',
-  'seres': 'global-seres.com',
-  'lamborghini': 'lamborghini.com',
-  'bentley': 'bentleymotors.com',
-  'rolls-royce': 'rolls-roycemotorcars.com',
-  'aston martin': 'astonmartin.com',
-  'chrysler': 'chrysler.com',
-  'leapmotor': 'leapmotor.com',
-  'nieve': 'nio.com',
-  'otokar': 'otokar.com.tr',
-  'proton': 'proton.com',
-  'skywell': 'skywell.com.tr',
-  'tata': 'tatamotors.com'
-};
+
 const brandColors = {
   "BMW":            "#0066b1",
   "Mercedes-Benz":  "#1a1a1a",
@@ -155,19 +85,16 @@ const colorSwatches = {
   "Diğer":          "linear-gradient(135deg, #ef4444, #3b82f6, #22c55e)",
 };
 
-// Brand logo: uses clearbit CDN with dictionary domain, perfectly falls back to letter avatar
+// Brand logo: uses open source car-logos-dataset, falls back to letter avatar on error
 function BrandLogo({ brand }) {
   const [failed, setFailed] = useState(false);
   
-  const slug = brand ? brand.toLowerCase().trim() : '';
-  const domain = brandDomains[slug];
-
+  const slug = brand ? brand.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
   const initial = brand ? brand[0].toUpperCase() : '?';
   const bgColor = brandColors[brand] || brandColors.default;
 
-  // If the brand is NOT in our dictionary, don't even try to render an <img> 
-  // (prevents 404 console errors). Also fallback if the image fails to load.
-  if (!domain || failed) {
+  // Fallback to initial if image failed to load or no brand provided
+  if (!brand || failed) {
     return (
       <div
         className="w-6 h-6 shrink-0 rounded-md flex items-center justify-center text-white font-bold text-[10px] select-none"
@@ -181,7 +108,7 @@ function BrandLogo({ brand }) {
   return (
     <div className="w-6 h-6 shrink-0 flex items-center justify-center bg-white dark:bg-slate-600 rounded-md border border-slate-100 dark:border-slate-500 overflow-hidden p-0.5">
       <img
-        src={`https://icon.horse/icon/${domain}`}
+        src={`https://cdn.jsdelivr.net/gh/filippofilip95/car-logos-dataset@master/logos/optimized/${slug}.png`}
         className="w-full h-full object-contain"
         alt={brand}
         onError={() => setFailed(true)}
