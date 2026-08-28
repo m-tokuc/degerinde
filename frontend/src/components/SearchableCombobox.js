@@ -67,22 +67,12 @@ const domainMap = {
   "Volvo":           "volvocars.com",
 };
 
-// High resolution overrides for brands with missing or globe favicons
-const customLogos = {
-  "BMW": "https://cdn.worldvectorlogo.com/logos/bmw.svg",
-  "Chery": "https://cdn.worldvectorlogo.com/logos/chery-2.svg",
-  "Daihatsu": "https://cdn.worldvectorlogo.com/logos/daihatsu-1.svg",
-  "Iveco - Otoyol": "https://cdn.worldvectorlogo.com/logos/iveco.svg",
-  "KGM SsangYong": "https://cdn.worldvectorlogo.com/logos/ssangyong.svg",
-  "MG": "https://cdn.worldvectorlogo.com/logos/mg-cars.svg",
-  "Mitsubishi": "https://cdn.worldvectorlogo.com/logos/mitsubishi.svg",
-  "Seres": "https://cdn.worldvectorlogo.com/logos/seres.svg",
-  "Temsa": "https://upload.wikimedia.org/wikipedia/commons/2/23/Temsa_logo.svg",
-  "Tofaş": "https://upload.wikimedia.org/wikipedia/commons/3/36/Tofas_logo.svg",
-  "BMC": "https://upload.wikimedia.org/wikipedia/commons/7/75/Bmc_logo.png"
+// All brands will now use the locally hosted images in /public/logos/
+const getLogoUrl = (brand) => {
+  if (!brand) return null;
+  const filename = brand.replace(/ /g, "_").replace(/-/g, "").toLowerCase() + ".png";
+  return `/logos/${filename}`;
 };
-
-// Brand colors for letter-avatar fallback
 const brandColors = {
   "BMW":            "#0066b1",
   "Mercedes-Benz":  "#1a1a1a",
@@ -165,18 +155,7 @@ const colorSwatches = {
   "Diğer":          "linear-gradient(135deg, #ef4444, #3b82f6, #22c55e)",
 };
 
-// All brands now get a favicon attempt — only skip ones with null domain
-const getLogoUrl = (brand) => {
-  if (customLogos[brand]) {
-    return customLogos[brand];
-  }
-  const domain = domainMap[brand];
-  if (!domain) return null;
-  // Use Google's newer Favicon API which is much more reliable and doesn't have strict CORS
-  return `https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://${domain}&size=128`;
-};
-
-// Brand logo: tries favicon first, falls back to styled letter avatar
+// Brand logo: loads local image, falls back to styled letter avatar
 function BrandLogo({ brand }) {
   const [failed, setFailed] = useState(false);
   const logoUrl = getLogoUrl(brand);
