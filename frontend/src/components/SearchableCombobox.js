@@ -215,12 +215,17 @@ export default function SearchableCombobox({
   name
 }) {
   const [query, setQuery] = useState('')
-  const safeOptions = Array.isArray(options) ? options : []
+  const safeOptions = Array.isArray(options) ? options : [];
+  
+  // Case-insensitive deduplication to remove duplicate brands like "Mini" and "MINI"
+  const uniqueOptions = safeOptions.filter((val, i, arr) => 
+    arr.findIndex(v => String(v).toLowerCase() === String(val).toLowerCase()) === i
+  );
 
   const filteredOptions =
     query === ''
-      ? safeOptions
-      : safeOptions.filter((option) =>
+      ? uniqueOptions
+      : uniqueOptions.filter((option) =>
           String(option).toLowerCase().includes(query.toLowerCase())
         )
 
