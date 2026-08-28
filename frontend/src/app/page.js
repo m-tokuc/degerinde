@@ -639,15 +639,15 @@ export default function Home() {
                 {/* Header with Title */}
                 <div className="bg-white dark:bg-slate-900 p-6 rounded-t-3xl border-b border-slate-200 dark:border-slate-800 flex justify-between items-center shadow-sm transition-colors duration-200">
                    <div className="flex items-center gap-2">
-                     <svg className="w-8 h-8 text-blue-600" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                     <svg className="w-8 h-8 text-blue-600 dark:text-blue-500" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                        <path d="M15 70 L30 70 L40 45 L70 45 L80 70 L95 70" stroke="currentColor" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
-                       <circle cx="30" cy="70" r="7" fill="white" stroke="currentColor" strokeWidth="5"/>
-                       <circle cx="80" cy="70" r="7" fill="white" stroke="currentColor" strokeWidth="5"/>
+                       <circle cx="30" cy="70" r="7" fill="currentColor" stroke="currentColor" strokeWidth="5"/>
+                       <circle cx="80" cy="70" r="7" fill="currentColor" stroke="currentColor" strokeWidth="5"/>
                        <path d="M25 40 L45 20 L60 30 L85 10" stroke="#0ea5e9" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
                        <path d="M70 10 L85 10 L85 25" stroke="#0ea5e9" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
                      </svg>
                      <span className="text-xl tracking-tight">
-                       <span className="font-extrabold text-blue-700">Değer</span><span className="font-medium text-slate-500">inde.</span>
+                       <span className="font-extrabold text-blue-700 dark:text-blue-400">Değer</span><span className="font-medium text-slate-500 dark:text-slate-300">inde.</span>
                      </span>
                    </div>
                    <div className="text-right">
@@ -769,10 +769,10 @@ export default function Home() {
                   Ekspertiz ve Model Detayları
                 </h3>
 
-                <div className="flex flex-col xl:flex-row gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full">
                   {/* Hasar Özeti */}
                   {result.hasar_analizi && (
-                    <div className="flex-1 bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl flex flex-col justify-center border border-slate-100 dark:border-slate-800">
+                    <div className="w-full bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl flex flex-col justify-center border border-slate-100 dark:border-slate-800 transition-colors duration-200">
                       <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-1">Tespit Edilen Kaporta Durumu</p>
                       <p className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-3">{result.hasar_analizi.Boya_Durumu}</p>
                       {result.hasar_analizi.Tramer_TL > 0 && (
@@ -785,20 +785,17 @@ export default function Home() {
                     </div>
                   )}
 
-                  {/* Metrikler */}
-                  <div className={`grid grid-cols-3 gap-3 ${result.hasar_analizi ? 'xl:w-3/5' : 'w-full'}`}>
-                    <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl flex flex-col items-center justify-center text-center border border-slate-100 dark:border-slate-800 transition-colors duration-200">
-                      <p className="text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Algoritma</p>
-                      <p className="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200">XGBoost</p>
-                    </div>
-                    <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl flex flex-col items-center justify-center text-center border border-slate-100 dark:border-slate-800 transition-colors duration-200">
-                      <p className="text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">R² Skoru</p>
-                      <p className="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200">{result.model_r2 ? (result.model_r2).toFixed(2) : "0.95"}</p>
-                    </div>
-                    <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl flex flex-col items-center justify-center text-center border border-slate-100 dark:border-slate-800 transition-colors duration-200">
-                      <p className="text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Ort. Hata (MAE)</p>
-                      <p className="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200">± {result.mae ? formatMoney(result.mae) : "₺45.000"}</p>
-                    </div>
+                  <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl flex flex-col items-center justify-center text-center border border-slate-100 dark:border-slate-800 transition-colors duration-200">
+                    <p className="text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Algoritma</p>
+                    <p className="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200">XGBoost</p>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl flex flex-col items-center justify-center text-center border border-slate-100 dark:border-slate-800 transition-colors duration-200">
+                    <p className="text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">R² Skoru</p>
+                    <p className="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200">{result.model_r2 ? (result.model_r2).toFixed(2) : "0.96"}</p>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl flex flex-col items-center justify-center text-center border border-slate-100 dark:border-slate-800 transition-colors duration-200">
+                    <p className="text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Ort. Hata (MAE)</p>
+                    <p className="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200">± {result.mae ? formatMoney(result.mae) : "₺62.852"}</p>
                   </div>
                 </div>
               </div>
