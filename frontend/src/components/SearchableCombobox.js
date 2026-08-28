@@ -11,7 +11,7 @@ const domainMap = {
   "BMW":             "bmw.com",
   "BMC":             "bmc.com.tr",
   "BYD":             "byd.com",
-  "Chery":           "cheryinternational.com",
+  "Chery":           "chery.cn",
   "Chevrolet":       "chevrolet.com",
   "Chrysler":        "chrysler.com",
   "Citroen":         "citroen.com",
@@ -33,7 +33,7 @@ const domainMap = {
   "Iveco - Otoyol":  "iveco.com",
   "Jaguar":          "jaguar.com",
   "Jeep":            "jeep.com",
-  "KGM SsangYong":   "kg-mobility.com",
+  "KGM SsangYong":   "smotor.com",
   "Kia":             "kia.com",
   "Lada":            "lada.ru",
   "Lamborghini":     "lamborghini.com",
@@ -43,7 +43,7 @@ const domainMap = {
   "Maserati":        "maserati.com",
   "Mazda":           "mazda.com",
   "Mercedes-Benz":   "mercedes-benz.com",
-  "MG":              "mgmotor.com",
+  "MG":              "mg.co.uk",
   "Mini":            "mini.com",
   "Mitsubishi":      "mitsubishi-motors.com",
   "Nissan":          "nissan.com",
@@ -154,7 +154,8 @@ const colorSwatches = {
 const getLogoUrl = (brand) => {
   const domain = domainMap[brand];
   if (!domain) return null;
-  return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+  // Use Clearbit Logo API which returns high-quality logos or 404s (allowing our fallback to work)
+  return `https://logo.clearbit.com/${domain}?size=64`;
 };
 
 // Brand logo: tries favicon first, falls back to styled letter avatar
