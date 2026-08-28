@@ -31,14 +31,21 @@ def _default_db_url() -> str:
 
 DB_URL = _default_db_url()
 
-engine = create_engine(
-    DB_URL,
-    pool_size=int(os.getenv("DB_POOL_SIZE", "5")),
-    max_overflow=int(os.getenv("DB_MAX_OVERFLOW", "10")),
-    pool_pre_ping=True,
-)
-
-SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+try:
+    engine = create_engine(
+        DB_URL,
+        pool_size=int(os.getenv("DB_POOL_SIZE", "5")),
+        max_overflow=int(os.getenv("DB_MAX_OVERFLOW", "10")),
+        pool_pre_ping=True,
+    )
+    SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+    _db_available = True
+except Exception as _db_init_err:
+    import logging as _logging
+    _logging.getLogger("degerinde").warning(f"⚠️ DB bağlantısı kurulamadı (non-blocking): {_db_init_err}")
+    engine = None
+    SessionLocal = None
+    _db_available = False
 
 
 class Base(DeclarativeBase):
@@ -74,8 +81,10 @@ class PredictionLog(Base):
 
 def init_db() -> None:
     """predictions tablosunu oluştur (idempotent)."""
+    if not _db_available or engine is None:
+        print("⚠️ DB yok, init_db atlandı.")
+        return
     Base.metadata.create_all(bind=engine)
-    # Ek güvenlik: ham SQL ile IF NOT EXISTS
     with engine.begin() as conn:
         conn.execute(text("""
             CREATE TABLE IF NOT EXISTS predictions (
@@ -109,6 +118,9 @@ def init_db() -> None:
 
 
 def get_db() -> Generator[Session, None, None]:
+    if not _db_available or SessionLocal is None:
+        yield None
+        return
     db = SessionLocal()
     try:
         yield db
@@ -141,6 +153,8 @@ def log_prediction(
     client_ip: Optional[str],
 ) -> None:
     """Senkron DB yazımı — BackgroundTasks içinden çağrılır."""
+    if not _db_available or SessionLocal is None:
+        return  # DB yok, sessizce geç
     db = SessionLocal()
     try:
         row = PredictionLog(

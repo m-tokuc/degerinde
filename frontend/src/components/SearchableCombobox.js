@@ -70,7 +70,13 @@ const domainMap = {
 // All brands will now use the locally hosted images in /public/logos/
 const getLogoUrl = (brand) => {
   if (!brand) return null;
-  const filename = brand.replace(/ /g, "_").replace(/-/g, "").toLowerCase() + ".png";
+  const filename = brand
+    .replace(/ /g, "_")
+    .replace(/-/g, "")
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")  // ö→o, ë→e, ü→u etc.
+    .replace(/ş/g, "s").replace(/ı/g, "i").replace(/ğ/g, "g").replace(/ç/g, "c") // Turkish chars
+    + ".png";
   return `/logos/${filename}`;
 };
 const brandColors = {
