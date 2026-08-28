@@ -198,8 +198,8 @@ export default function Home() {
       setAutoFilledFields(prev => ({ ...prev, [name]: false }));
     }
 
-    // Yıl 4 haneli olarak girildiğinde AI auto-fill yap
-    if (name === "Yil" && value && value.length === 4 && next.Marka && next.Seri && next.Model) {
+    // Model seçildiğinde veya Yıl girildiğinde AI auto-fill yap
+    if ((name === "Model" || (name === "Yil" && value && value.length === 4)) && next.Marka && next.Seri && next.Model) {
       try {
         const res = await fetch('/api/auto_fill_specs', {
           method: "POST",
@@ -713,7 +713,6 @@ export default function Home() {
                        wData.push({ name: f.isim, val: v, start: currentVal, end: currentVal + v, isTotal: false });
                        currentVal += v;
                     });
-                    wData.push({ name: "Nihai Fiyat", val: total, start: 0, end: total, isTotal: true });
                     
                     const maxVal = Math.max(...wData.map(d => Math.max(d.start, d.end)));
                     const minVal = Math.min(...wData.map(d => Math.min(d.start, d.end, 0))); // ensure 0 is included if needed
