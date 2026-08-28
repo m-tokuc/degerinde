@@ -328,9 +328,14 @@ export default function Home() {
       const element = document.getElementById('pdf-report-container');
       if (!element) return;
       
+      const elementWidth = element.scrollWidth;
+      const elementHeight = element.scrollHeight;
+
       const imgData = await htmlToImage.toPng(element, {
         pixelRatio: 2,
         backgroundColor: '#f8fafc', // slate-50
+        width: elementWidth,
+        height: elementHeight,
         style: {
           transform: 'scale(1)',
           transformOrigin: 'top left'
@@ -344,7 +349,7 @@ export default function Home() {
       
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
-      const imgHeight = (element.offsetHeight * pdfWidth) / element.offsetWidth;
+      const imgHeight = (elementHeight * pdfWidth) / elementWidth;
       
       let heightLeft = imgHeight;
       let position = 0;
