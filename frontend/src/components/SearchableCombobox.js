@@ -257,6 +257,7 @@ export default function SearchableCombobox({
                     displayValue={(option) => option || ''}
                     onChange={(event) => setQuery(event.target.value)}
                     placeholder={disabled ? 'Önce üstteki alanı seçin' : placeholder}
+                    autoComplete="off"
                   />
                 </div>
               </ComboboxButton>
