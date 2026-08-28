@@ -85,6 +85,28 @@ const colorSwatches = {
   "Diğer":          "linear-gradient(135deg, #ef4444, #3b82f6, #22c55e)",
 };
 
+const defaultGithubRepoUrl = (slug) => `https://cdn.jsdelivr.net/gh/filippofilip95/car-logos-dataset@master/logos/optimized/${slug}.png`;
+
+const logoOverrides = {
+  // Mismatched aliases mapping to existing Github dataset logos
+  "Citroën": defaultGithubRepoUrl("citroen"),
+  "KGM SsangYong": defaultGithubRepoUrl("ssangyong"),
+  "DS Automobiles": defaultGithubRepoUrl("ds"),
+  "Ford - Otosan": defaultGithubRepoUrl("ford"),
+  "Ford Trucks": defaultGithubRepoUrl("ford"),
+  "Iveco - Otoyol": defaultGithubRepoUrl("iveco"),
+  "Nieve": defaultGithubRepoUrl("nio"),
+  
+  // Missing local/commercial brands mapping to Wikimedia Commons
+  "Tofaş": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Tofa%C5%9F_Logo.png/600px-Tofa%C5%9F_Logo.png",
+  "BMC": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/BMC_Logo.svg/512px-BMC_Logo.svg.png",
+  "Temsa": "https://upload.wikimedia.org/wikipedia/commons/4/4b/Temsa_logo.png",
+  "TOGG": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Togg_logo.svg/512px-Togg_logo.svg.png",
+  "Otokar": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Otokar_Logo.svg/512px-Otokar_Logo.svg.png",
+  "Skywell": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Skywell_logo.svg/512px-Skywell_logo.svg.png",
+  "Seres": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Seres_logo.svg/512px-Seres_logo.svg.png"
+};
+
 // Brand logo: uses open source car-logos-dataset, falls back to letter avatar on error
 function BrandLogo({ brand }) {
   const [failed, setFailed] = useState(false);
@@ -92,6 +114,8 @@ function BrandLogo({ brand }) {
   const slug = brand ? brand.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') : '';
   const initial = brand ? brand[0].toUpperCase() : '?';
   const bgColor = brandColors[brand] || brandColors.default;
+
+  const finalLogoUrl = logoOverrides[brand] || defaultGithubRepoUrl(slug);
 
   // Fallback to initial if image failed to load or no brand provided
   if (!brand || failed) {
@@ -108,7 +132,7 @@ function BrandLogo({ brand }) {
   return (
     <div className="w-6 h-6 shrink-0 flex items-center justify-center bg-white dark:bg-slate-600 rounded-md border border-slate-100 dark:border-slate-500 overflow-hidden p-0.5">
       <img
-        src={`https://cdn.jsdelivr.net/gh/filippofilip95/car-logos-dataset@master/logos/optimized/${slug}.png`}
+        src={finalLogoUrl}
         className="w-full h-full object-contain"
         alt={brand}
         onError={() => setFailed(true)}
