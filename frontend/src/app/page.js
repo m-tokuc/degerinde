@@ -328,7 +328,17 @@ export default function Home() {
       const element = document.getElementById('pdf-report-container');
       if (!element) return;
       
-      const elementWidth = element.scrollWidth;
+      // Expert-level PDF Fix: Force desktop layout to prevent clipping on any viewport
+      const originalWidth = element.style.width;
+      const originalMaxWidth = element.style.maxWidth;
+      
+      element.style.width = '800px';
+      element.style.maxWidth = 'none';
+      
+      // Wait for layout to calculate
+      await new Promise(r => setTimeout(r, 50));
+      
+      const elementWidth = 800;
       const elementHeight = element.scrollHeight;
 
       const imgData = await htmlToImage.toPng(element, {
@@ -336,11 +346,19 @@ export default function Home() {
         backgroundColor: '#f8fafc', // slate-50
         width: elementWidth,
         height: elementHeight,
+        windowWidth: 800,
         style: {
           transform: 'scale(1)',
-          transformOrigin: 'top left'
+          transformOrigin: 'top left',
+          margin: '0',
+          padding: '0'
         }
       });
+      
+      // Restore original layout
+      element.style.width = originalWidth;
+      element.style.maxWidth = originalMaxWidth;
+      
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
