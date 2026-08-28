@@ -696,7 +696,7 @@ export default function Home() {
 
               {/* Explainable AI Breakdown - Vertical Waterfall Chart */}
               {result.fiyat_etkenleri && result.fiyat_etkenleri.length > 0 && (
-                <div className="mx-6 bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-lg shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 transition-colors duration-200 overflow-x-auto custom-scrollbar">
+                <div className="mx-6 bg-white dark:bg-slate-900 p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 transition-colors duration-200">
                   <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-6 px-2 flex items-center gap-2">
                     <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                     Yapay Zeka Fiyat Analizi (Şelale)
@@ -720,27 +720,28 @@ export default function Home() {
                     const range = maxVal - minVal || 1;
                     
                     return (
-                      <div className="relative h-72 min-w-[500px] flex px-4 pb-12 pt-10 border-b border-slate-200 dark:border-slate-800">
+                      <div className="relative h-64 w-full flex px-2 pb-14 pt-8 border-b border-slate-200 dark:border-slate-800">
                         {wData.map((d, i) => {
                           const bottomPct = ((Math.min(d.start, d.end) - minVal) / range) * 100;
                           const heightPct = Math.max(((Math.abs(d.end - d.start)) / range) * 100, 0.5); // Min height for visibility
                           const isPositive = d.val >= 0;
                           
-                          let bgClass = "bg-slate-700 dark:bg-slate-600"; // Total
+                          // Softer colors
+                          let bgClass = "bg-slate-500/90 dark:bg-slate-500"; // Total
                           if (!d.isTotal) {
-                            bgClass = isPositive ? "bg-emerald-500 shadow-emerald-500/20" : "bg-red-500 shadow-red-500/20";
+                            bgClass = isPositive ? "bg-emerald-400/90" : "bg-rose-400/90";
                           }
 
                           return (
                             <div key={i} className="flex-1 relative h-full group">
-                              <div className="absolute w-full flex justify-center" style={{ bottom: `calc(${bottomPct + heightPct}% + 8px)` }}>
-                                <span className={`text-[9px] md:text-xs font-bold whitespace-nowrap ${d.isTotal ? 'text-slate-800 dark:text-slate-200' : (isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400')}`}>
+                              <div className="absolute w-full flex justify-center" style={{ bottom: `calc(${bottomPct + heightPct}% + 6px)` }}>
+                                <span className={`text-[8px] md:text-[10px] font-bold whitespace-nowrap ${d.isTotal ? 'text-slate-600 dark:text-slate-300' : (isPositive ? 'text-emerald-500 dark:text-emerald-400' : 'text-rose-500 dark:text-rose-400')}`}>
                                   {d.isTotal ? formatMoney(Math.abs(d.val)) : (isPositive ? '+' : '-') + formatMoney(Math.abs(d.val))}
                                 </span>
                               </div>
                               
                               <div 
-                                className={`absolute left-1/2 -translate-x-1/2 w-8 md:w-12 rounded-sm shadow-sm transition-all duration-300 ${bgClass} hover:brightness-110`}
+                                className={`absolute left-1/2 -translate-x-1/2 w-6 md:w-10 rounded-sm transition-all duration-300 ${bgClass}`}
                                 style={{
                                   height: `${heightPct}%`,
                                   bottom: `${bottomPct}%`
@@ -748,7 +749,7 @@ export default function Home() {
                               ></div>
                               
                               <div className="absolute -bottom-10 w-full flex justify-center">
-                                <span className="text-[8px] md:text-[9px] font-medium text-slate-500 dark:text-slate-400 leading-tight block truncate w-16 md:w-20 text-center px-1">
+                                <span className="text-[8px] md:text-[9px] font-medium text-slate-400 dark:text-slate-500 leading-tight block w-14 md:w-16 text-center px-0.5 break-words">
                                   {d.name}
                                 </span>
                               </div>
@@ -761,39 +762,44 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Damage Analysis Summary Card */}
-              {result.hasar_analizi && (
-                <div className="mx-6 bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-lg shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 transition-colors duration-200">
-                  <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3 px-2 flex items-center gap-2">
-                    <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                    Ekspertiz ve Hasar Özeti
-                  </h3>
-                  <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-colors duration-200">
-                    <div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Tespit Edilen Kaporta Durumu</p>
-                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200 mt-0.5">{result.hasar_analizi.Boya_Durumu}</p>
+              {/* Combined Damage and Metrics Card */}
+              <div className="mx-6 bg-white dark:bg-slate-900 p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 transition-colors duration-200">
+                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-6 px-2 flex items-center gap-2">
+                  <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                  Ekspertiz ve Model Detayları
+                </h3>
+
+                <div className="flex flex-col xl:flex-row gap-4">
+                  {/* Hasar Özeti */}
+                  {result.hasar_analizi && (
+                    <div className="flex-1 bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl flex flex-col justify-center border border-slate-100 dark:border-slate-800">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-1">Tespit Edilen Kaporta Durumu</p>
+                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200 mb-3">{result.hasar_analizi.Boya_Durumu}</p>
+                      {result.hasar_analizi.Tramer_TL > 0 && (
+                        <div>
+                          <span className="inline-block bg-rose-100/80 text-rose-800 text-xs font-semibold px-3 py-1.5 rounded-xl border border-rose-200">
+                            Tramer: {formatMoney(result.hasar_analizi.Tramer_TL)}
+                          </span>
+                        </div>
+                      )}
                     </div>
-                    {result.hasar_analizi.Tramer_TL > 0 && (
-                      <div className="bg-rose-100 text-rose-800 text-xs font-semibold px-3 py-1.5 rounded-xl">
-                        Tramer: {formatMoney(result.hasar_analizi.Tramer_TL)}
-                      </div>
-                    )}
+                  )}
+
+                  {/* Metrikler */}
+                  <div className={`grid grid-cols-3 gap-3 ${result.hasar_analizi ? 'xl:w-3/5' : 'w-full'}`}>
+                    <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl flex flex-col items-center justify-center text-center border border-slate-100 dark:border-slate-800 transition-colors duration-200">
+                      <p className="text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Algoritma</p>
+                      <p className="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200">XGBoost</p>
+                    </div>
+                    <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl flex flex-col items-center justify-center text-center border border-slate-100 dark:border-slate-800 transition-colors duration-200">
+                      <p className="text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">R² Skoru</p>
+                      <p className="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200">{result.model_r2 ? (result.model_r2).toFixed(2) : "0.95"}</p>
+                    </div>
+                    <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl flex flex-col items-center justify-center text-center border border-slate-100 dark:border-slate-800 transition-colors duration-200">
+                      <p className="text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Ort. Hata (MAE)</p>
+                      <p className="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200">± {result.mae ? formatMoney(result.mae) : "₺45.000"}</p>
+                    </div>
                   </div>
-                </div>
-              )}
-              
-              <div className="mx-6 grid grid-cols-3 gap-3 md:gap-4 pb-4">
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl transition-colors duration-200 flex flex-col items-center text-center shadow-sm">
-                  <p className="text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Algoritma</p>
-                  <p className="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200">XGBoost</p>
-                </div>
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl transition-colors duration-200 flex flex-col items-center text-center shadow-sm">
-                  <p className="text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">R² Skoru</p>
-                  <p className="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200">{result.model_r2 ? (result.model_r2).toFixed(2) : "0.95"}</p>
-                </div>
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl transition-colors duration-200 flex flex-col items-center text-center shadow-sm">
-                  <p className="text-[10px] md:text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Ort. Hata (MAE)</p>
-                  <p className="text-xs md:text-sm font-bold text-slate-800 dark:text-slate-200">± {result.mae ? formatMoney(result.mae) : "₺45.000"}</p>
                 </div>
               </div>
             </div>
