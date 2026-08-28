@@ -716,17 +716,17 @@ export default function Home() {
 
                           return (
                             <div key={i} className="flex flex-col items-center flex-1 relative group">
-                              <div className="absolute w-full flex justify-center" style={{ bottom: \`calc(\${bottomPct + heightPct}% + 4px)\` }}>
-                                <span className={\`text-[10px] md:text-xs font-bold whitespace-nowrap \${d.isTotal ? 'text-slate-800 dark:text-slate-200' : (isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400')}\`}>
+                              <div className="absolute w-full flex justify-center" style={{ bottom: `calc(${bottomPct + heightPct}% + 4px)` }}>
+                                <span className={`text-[10px] md:text-xs font-bold whitespace-nowrap ${d.isTotal ? 'text-slate-800 dark:text-slate-200' : (isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400')}`}>
                                   {d.isTotal ? formatMoney(Math.abs(d.val)) : (isPositive ? '+' : '-') + formatMoney(Math.abs(d.val))}
                                 </span>
                               </div>
                               
                               <div 
-                                className={\`w-12 md:w-16 rounded-sm shadow-md transition-all duration-300 \${bgClass} hover:brightness-110\`}
+                                className={`w-12 md:w-16 rounded-sm shadow-md transition-all duration-300 ${bgClass} hover:brightness-110`}
                                 style={{
-                                  height: \`\${heightPct}%\`,
-                                  marginBottom: \`\${bottomPct}%\`
+                                  height: `${heightPct}%`,
+                                  marginBottom: `${bottomPct}%`
                                 }}
                               ></div>
                               
